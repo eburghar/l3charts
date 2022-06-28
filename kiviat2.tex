@@ -47,7 +47,12 @@
 		% when used inside dims environment
 		\tl_if_eq:NnTF \@currenvir {dims} {
     		% add new dimension with its options
-			\seq_put_right:Nn \l_labeloptions_seq {##1}
+			\IfValueTF {##1} {
+    			\seq_put_right:Nn \l_labeloptions_seq {##1}
+			} {
+    			% replace novalue with nothing
+    			\seq_put_right:Nn \l_labeloptions_seq {}
+			}
 			\seq_put_right:Nn \l_labels_seq {##2}
 		} {}
 	}
@@ -57,19 +62,26 @@
 	\NewDocumentEnvironment {dims} {o} {
 		% keyval options for the environment
 		\keys_define:nn {kiviatchart_dims} {
-			dim-options  .code:n = {\str_set:Nn \l_dimoptions_str {[####1]}}, % options for dimensions axis
-			unit-options .code:n = {\str_set:Nn \l_unitoptions_str {[####1]}}, % options for unit polygones
-			label-options .code:n = {\str_set:Nn \l_labeloptions_str {[####1]}}, % options for unit labels
+			dim-options   .code:n          = {\str_set:Nn \l_dimoptions_str {[####1]}}, % options for dimensions axis
+			unit-options  .code:n          = {\str_set:Nn \l_unitoptions_str {[####1]}}, % options for unit polygones
+			label-options .code:n          = {\str_set:Nn \l_labeloptions_str {[####1]}}, % options for unit labels
+			label-cs      .str_set:N       = \l_labelcs_str, % name of the cs used to format label
+			unit-cs       .str_set:N       = \l_unitcs_str % name of the cs used to format label
 		}
+		
+		\cs_new:Npn \identity ####1 {####1} % identity cs to return the first argument as is
+		\cs_new:Npn \tinytt ####1 {\tiny\texttt{####1}} % cs to format unit labels
 		% set default environment options
 		\keys_set:nn {kiviatchart_dims} {
 			dim-options   = {opacity=0.8},
 			unit-options  = {opacity=0.3},
-			label-options = {opacity=0.5,below}
+			label-options = {opacity=0.5,below},
+			label-cs      = {identity},
+			unit-cs       = {tinytt}
 		}
 		% override with given options if any
 		\IfValueT {##1} {\keys_set:nn {kiviatchart_dims} {##1}}
-
+		\str_show:N \l_unitcs_str
 		\seq_new:N \l_labels_seq % sequence to keep labels from \value cs
 		\seq_new:N \l_labeloptions_seq % sequence to keep label options from \value cs
 	} {
@@ -92,20 +104,20 @@
 					% \fill (D\X-\Y) circle (1pt); % intersection points on the web
 			}
 			% units polygones
-			\exp_last_unbraced:No \draw {\l_unitoptions_str} (0 \c_colon_str \Y*\R/\U) \foreach \X in {1,...,\D} {
+			\exp_last_unbraced:No \draw {\l_unitoptions_str} (0 \c_colon_str \Y*\R/\U) foreach \X in {1,...,\D} {
 					-- (\X*\A \c_colon_str \Y*\R/\U)
 			} -- cycle;
 		}
 
 		% units labels
 		\foreach \Y in {1,...,\U} {
-			\exp_last_unbraced:No \node {\l_labeloptions_str} at (D1-\Y) {\tt\tiny\Y};
+			\exp_last_unbraced:No \node {\l_labeloptions_str} at (D1-\Y) {\use:c {\l_unitcs_str} {\Y}};
 		}
 
 		% define labels for each dimension axis (names config option)
 		\foreach \l [count=\i from 1] in \labels {
 			\tl_set:Nx \l_tmpa_tl {\seq_item:Nn \l_labeloptions_seq {\i}}
-			\path (\i*\A \c_colon_str \L) node [\l_tmpa_tl] {\colorbox{black}{\textcolor{white}{\l}}};
+			\path (\i*\A \c_colon_str \L) node [\l_tmpa_tl] {\use:c {\l_labelcs_str} {\l}};
 		}
 	}
 
@@ -149,7 +161,7 @@
 		}
 
 		% polygone formed by values on dim axis
-		\exp_last_unbraced:No \draw {\l_setoptions_str} (D1-\firstval) \foreach \v [count=\i from 1] in \values {-- (D\i-\v)} -- cycle;
+		\exp_last_unbraced:No \draw {\l_setoptions_str} (D1-\firstval) foreach \v [count=\i from 1] in \values {-- (D\i-\v)} -- cycle;
     }
 
 	% start a picture
@@ -161,8 +173,9 @@
 \ExplSyntaxOff
 
 \begin{document}
+\NewDocumentCommand\invLabel{m}{\colorbox{black}{\textcolor{white}{#1}}}
 \begin{kiviatchart}[scale=1]
-	\begin{dims}
+	\begin{dims}[label-cs=invLabel]
 		\value[above]{Infrastructure}
 		\value[above]{Réseaux}
 		\value[left]{Systèmes}
