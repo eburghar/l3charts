@@ -1,4 +1,5 @@
-\documentclass{article}
+\documentclass{standalone}
+
 \usepackage{tikz}
 \usepackage{expl3,xparse}
 \usepackage{fontspec}
@@ -11,26 +12,30 @@
 \ExplSyntaxOn
 \makeatletter % to access latex2e variables
 
-
 \NewDocumentEnvironment {kiviatchart} {o} {
-    \prop_new:N \l_chartoptions_prop
-    \clist_new:N \l_chartoptions_clist
-    \keys_define:nn {kiviatchart} {
-        radius        .tl_set:N  = \R, % maximal diagram radius
-        labels-radius .tl_set:N  = \L, % radius to put dimension labels
-        units         .tl_set:N  = \U, % number of scale units
-        % forward all other options to tikzpicture
-        unknown .code:n = {\prop_put:Nxx \l_chartoptions_prop {\l_keys_key_str} {##1}}
-    }
-    \keys_set:nn {kiviatchart} {radius=3.5cm, labels-radius=3.5cm, units=5}
-    \IfValueT {#1} {\keys_set:nn {kiviatchart} {#1}}
-    % turn the prop to a clist
-    \prop_map_inline:Nn \l_chartoptions_prop {
-        \clist_put_right:Nn \l_chartoptions_clist {##1=##2}
-    }
-    % turn the clist back to a str
-	\str_set:Nx \l_chartoptions_str {[\clist_use:Nn \l_chartoptions_clist {,}]}
-	\str_show:N \l_chartoptions_str
+	\prop_new:N \l_tikz_prop % properties for tikzpicture
+	\clist_new:N \l_tikz_clist % properties for tikzpicture as keyval string
+	% keyval options for the environment
+	\keys_define:nn {kiviatchart} {
+		radius        .tl_set:N  = \R, % maximal diagram radius
+		labels-radius .tl_set:N  = \L, % radius to put dimension labels
+		units         .tl_set:N  = \U, % number of scale units
+		% forward all other options to tikzpicture
+		unknown .code:n = {\prop_put:Nxx \l_tikz_prop {\l_keys_key_str} {##1}}
+	}
+	% set default environment options
+	\keys_set:nn {kiviatchart} {
+		radius        = 3.5cm,
+		labels-radius = 3.5cm,
+		units         = 5
+	}
+	% override with given options if any
+	\IfValueT {#1} {\keys_set:nn {kiviatchart} {#1}}
+	% turn the tikz prop into a keyval string
+	\prop_map_inline:Nn \l_tikz_prop {
+		\clist_put_right:Nn \l_tikz_clist {##1=##2}
+	}
+	\str_set:Nx \l_tikz_str {[\clist_use:Nn \l_tikz_clist {,}]}
 
 	% Command to set dimentions and values
 	\RenewDocumentCommand \value {om} {
@@ -48,19 +53,25 @@
 	}
 
 	% Environment for defining dimensions
+	% draw the kiviat chart axis
 	\NewDocumentEnvironment {dims} {o} {
-        \keys_define:nn {kiviatchart_dims} {
-            dim-options  .code:n = {\str_set:Nn \l_dimoptions_str {[####1]}}, % options for dimensions axises
-            unit-options .code:n = {\str_set:Nn \l_unitoptions_str {[####1]}}, % options for unit polygones
-        }
-        % set default options
-        \keys_set:nn {kiviatchart_dims} {dim-options={opacity=0.8}, unit-options={opacity=0.3}}
-        % override with given options if any
-        \IfValueT {##1} {\keys_set:nn {kiviatchart_dims} {##1}}
+		% keyval options for the environment
+		\keys_define:nn {kiviatchart_dims} {
+			dim-options  .code:n = {\str_set:Nn \l_dimoptions_str {[####1]}}, % options for dimensions axis
+			unit-options .code:n = {\str_set:Nn \l_unitoptions_str {[####1]}}, % options for unit polygones
+			label-options .code:n = {\str_set:Nn \l_labeloptions_str {[####1]}}, % options for unit labels
+		}
+		% set default environment options
+		\keys_set:nn {kiviatchart_dims} {
+			dim-options   = {opacity=0.8},
+			unit-options  = {opacity=0.3},
+			label-options = {opacity=0.5,below}
+		}
+		% override with given options if any
+		\IfValueT {##1} {\keys_set:nn {kiviatchart_dims} {##1}}
 
-    	% setup sequences at the start of environment
-		\seq_new:N \l_labels_seq
-		\seq_new:N \l_labeloptions_seq
+		\seq_new:N \l_labels_seq % sequence to keep labels from \value cs
+		\seq_new:N \l_labeloptions_seq % sequence to keep label options from \value cs
 	} {
     	% now that we have all the dimensions we can draw the picture
 		\tl_set:Nx \labels {\seq_use:Nn \l_labels_seq {,}}% , separated list of dimensions
@@ -69,27 +80,27 @@
 
 		\path (0\c_colon_str 0cm) coordinate (O);% define coordinate for origin
 
-		% draw the dimensions axises
+		% draw the dimensions axis
 		\foreach \X in {1,...,\D} {
-				\draw \l_dimoptions_str (\X*\A \c_colon_str 0) -- (\X*\A \c_colon_str \R);
-			}
+			\exp_last_unbraced:No \draw {\l_dimoptions_str} (\X*\A \c_colon_str 0) -- (\X*\A \c_colon_str \R);
+		}
 
-		\foreach \Y in {0,...,\U}{
-				% setup values positions
-				\foreach \X in {1,...,\D}{
-						\path (\X*\A \c_colon_str \Y*\R/\U) coordinate (D\X-\Y);
-						% \fill (D\X-\Y) circle (1pt); % intersection points on the web
-					}
-				% units polygones
-				\draw \l_unitoptions_str (0 \c_colon_str \Y*\R/\U) \foreach \X in {1,...,\D}{
-						-- (\X*\A \c_colon_str \Y*\R/\U)
-					} -- cycle;
+		\foreach \Y in {0,...,\U} {
+			% save positions as (D\i-\j) with \i dimension and \j value on [1,\D] scale 
+			\foreach \X in {1,...,\D} {
+					\path (\X*\A \c_colon_str \Y*\R/\U) coordinate (D\X-\Y);
+					% \fill (D\X-\Y) circle (1pt); % intersection points on the web
 			}
+			% units polygones
+			\exp_last_unbraced:No \draw {\l_unitoptions_str} (0 \c_colon_str \Y*\R/\U) \foreach \X in {1,...,\D} {
+					-- (\X*\A \c_colon_str \Y*\R/\U)
+			} -- cycle;
+		}
 
 		% units labels
-		\foreach \Y in {1,...,\U}{
-				\node [opacity=0.8,below] at (D1-\Y) {\tt\tiny\Y};
-			}
+		\foreach \Y in {1,...,\U} {
+			\exp_last_unbraced:No \node {\l_labeloptions_str} at (D1-\Y) {\tt\tiny\Y};
+		}
 
 		% define labels for each dimension axis (names config option)
 		\foreach \l [count=\i from 1] in \labels {
@@ -98,44 +109,53 @@
 		}
 	}
 
-	% environment for values set
+	% Environment for values set
+	% draw set polygone
 	\NewDocumentEnvironment {set} {o} {
 		\seq_new:N \l_values_seq % store the values of a set
-    	\prop_new:N \l_setoptions_prop % prop to store keyval options
-        \clist_new:N \l_setoptions_clist % clist to get prop back to keyval str
-        \keys_define:nn {kiviatchart_set} {
-            % forward all options to tikz
-            unknown .code:n = {\prop_put:Nxx \l_setoptions_prop {\l_keys_key_str} {####1}}
-        }
-        % set default options
-        \exp_args:Nnx \keys_set:nn {kiviatchart_set} {color=black,line\c_space_tl width=1.5pt,opacity=1,fill\c_space_tl opacity=0.3,fill=gray}
-        % override with given options if any
-        \IfValueT {##1} {\keys_set:nn {kiviatchart_set} {##1}}
-        % turn the prop to a clist
-        \prop_map_inline:Nn \l_setoptions_prop {
-            \clist_put_right:Nn \l_setoptions_clist {####1=####2}
-        }
-        % turn the clist back to a str
+		\prop_new:N \l_setoptions_prop % prop to store keyval options
+		\clist_new:N \l_setoptions_clist % clist to get prop back to keyval str
+		% keyval options for the environment
+		\keys_define:nn {kiviatchart_set} {
+			dot-options  .code:n = {\str_set:Nn \l_dotoptions_str {[####1]}}, % options for polygone node
+			% forward all other options to tikz
+			unknown      .code:n = {\prop_put:Nxx \l_setoptions_prop {\l_keys_key_str} {####1}}
+		}
+		% set default options
+		\exp_args:Nnx \keys_set:nn {kiviatchart_set} {
+    		dot-options             = {fill,circle,draw,inner\c_space_tl sep=1pt},
+			color                   = black,
+			line\c_space_tl width   = 1.5pt,
+			opacity                 = 1,
+			fill\c_space_tl opacity = 0.3,
+			fill                    = gray
+		}
+		% override with given options if any
+		\IfValueT {##1} {\keys_set:nn {kiviatchart_set} {##1}}
+		% turn the tikz prop into a keyval string
+		\prop_map_inline:Nn \l_setoptions_prop {
+			\clist_put_right:Nn \l_setoptions_clist {####1=####2}
+		}
 		\str_set:Nx \l_setoptions_str {[\clist_use:Nn \l_setoptions_clist {,}]}
 
 	}{
-    	% now that we have all the values, we can draw the points and the polygones
+		% now that we have all the values, we can draw the points and the polygones
 		\tl_set:Nx \values {\seq_use:Nn \l_values_seq {,}}
 		\seq_get_left:NN \l_values_seq \firstval
 
 		% dots on the dim axis
 		\foreach \v [count=\i from 1] in \values {
-			\node at (D\i-\v) [fill,circle,draw,inner\c_space_tl sep=1pt] {};
+			\exp_last_unbraced:No \node {\l_dotoptions_str} at (D\i-\v) {};
 		}
 
 		% polygone formed by values on dim axis
-		\draw \l_setoptions_str (D1-\firstval) \foreach \v [count=\i from 1] in \values {-- (D\i-\v)} -- cycle;
-	}
+		\exp_last_unbraced:No \draw {\l_setoptions_str} (D1-\firstval) \foreach \v [count=\i from 1] in \values {-- (D\i-\v)} -- cycle;
+    }
 
 	% start a picture
-	\exp_last_unbraced:Nno \begin {tikzpicture} {\l_chartoptions_str}
+	\exp_last_unbraced:Nno \begin {tikzpicture} {\l_tikz_str}
 }{
-    % close the picture
+	% close the picture
 	\end{tikzpicture}
 }
 \ExplSyntaxOff
