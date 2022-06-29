@@ -1,17 +1,18 @@
-\documentclass{standalone}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{l3charts}[2022/06/28 define a few customizable tikz charts using latex3]
 
-\usepackage{tikz}
-\usepackage{expl3,xparse}
-\usepackage{fontspec}
-\usepackage[default]{raleway}
+\RequirePackage{expl3}
+\RequirePackage{xparse}
+\RequirePackage{tikz}
 
-\usetikzlibrary{shapes}
-
-\renewcommand*\familydefault{\sfdefault}% Force the sansserif version of any font used
+\usetikzlibrary{shapes, shapes.misc, backgrounds, calc, fit}
 
 \ExplSyntaxOn
 \makeatletter % to access latex2e variables
 
+% Environment to draw kiviat charts
+% Inside kiviatchar environement at leats one dims environement must be defined
+% followed by one or more set environment
 \NewDocumentEnvironment {kiviatchart} {o} {
 	\prop_new:N \l_tikz_prop % properties for tikzpicture
 	\clist_new:N \l_tikz_clist % properties for tikzpicture as keyval string
@@ -41,17 +42,17 @@
 	\RenewDocumentCommand \value {om} {
 		% when used inside set environment
 		\tl_if_eq:NnTF \@currenvir {set} {
-    		% add new value
+			% add new value
 			\seq_put_right:Nn \l_values_seq {##2}
 		} {}
 		% when used inside dims environment
 		\tl_if_eq:NnTF \@currenvir {dims} {
-    		% add new dimension with its options
+			% add new dimension with its options
 			\IfValueTF {##1} {
-    			\seq_put_right:Nn \l_labeloptions_seq {##1}
+				\seq_put_right:Nn \l_labeloptions_seq {##1}
 			} {
-    			% replace novalue with nothing
-    			\seq_put_right:Nn \l_labeloptions_seq {}
+				% replace novalue with nothing
+				\seq_put_right:Nn \l_labeloptions_seq {}
 			}
 			\seq_put_right:Nn \l_labels_seq {##2}
 		} {}
@@ -62,33 +63,32 @@
 	\NewDocumentEnvironment {dims} {o} {
 		% keyval options for the environment
 		\keys_define:nn {kiviatchart_dims} {
-			dim-options   .code:n          = {\str_set:Nn \l_dimoptions_str {[####1]}}, % options for dimensions axis
-			unit-options  .code:n          = {\str_set:Nn \l_unitoptions_str {[####1]}}, % options for unit polygones
+			dim-options   .code:n          = {\str_set:Nn \l_dimoptions_str {[####1]}},   % options for dimensions axis
+			unit-options  .code:n          = {\str_set:Nn \l_unitoptions_str {[####1]}},  % options for unit polygones
 			label-options .code:n          = {\str_set:Nn \l_labeloptions_str {[####1]}}, % options for unit labels
 			label-cs      .str_set:N       = \l_labelcs_str, % name of the cs used to format label
-			unit-cs       .str_set:N       = \l_unitcs_str % name of the cs used to format label
+			unit-cs       .str_set:N       = \l_unitcs_str   % name of the cs used to format label
 		}
 		
-		\cs_new:Npn \identity ####1 {####1} % identity cs to return the first argument as is
+		\cs_new:Npn \identity ####1 {####1}             % identity cs to return the first argument as is
 		\cs_new:Npn \tinytt ####1 {\tiny\texttt{####1}} % cs to format unit labels
 		% set default environment options
 		\keys_set:nn {kiviatchart_dims} {
 			dim-options   = {opacity=0.8},
 			unit-options  = {opacity=0.3},
 			label-options = {opacity=0.5,below},
-			label-cs      = {identity},
-			unit-cs       = {tinytt}
+			label-cs      = identity,
+			unit-cs       = tinytt
 		}
 		% override with given options if any
 		\IfValueT {##1} {\keys_set:nn {kiviatchart_dims} {##1}}
-		\str_show:N \l_unitcs_str
-		\seq_new:N \l_labels_seq % sequence to keep labels from \value cs
+		\seq_new:N \l_labels_seq       % sequence to keep labels from \value cs
 		\seq_new:N \l_labeloptions_seq % sequence to keep label options from \value cs
 	} {
     	% now that we have all the dimensions we can draw the picture
-		\tl_set:Nx \labels {\seq_use:Nn \l_labels_seq {,}}% , separated list of dimensions
-		\tl_set:Nx \D {\seq_count:N \l_labels_seq}% number of dimensions
-		\tl_set:Nx \A {360/\D}% calculated angle between dimension axes
+		\tl_set:Nx \labels {\seq_use:Nn \l_labels_seq {,}} % , separated list of dimensions
+		\tl_set:Nx \D {\seq_count:N \l_labels_seq}         % number of dimensions
+		\tl_set:Nx \A {360/\D}                             % calculated angle between dimension axes
 
 		\path (0\c_colon_str 0cm) coordinate (O);% define coordinate for origin
 
@@ -124,8 +124,8 @@
 	% Environment for values set
 	% draw set polygone
 	\NewDocumentEnvironment {set} {o} {
-		\seq_new:N \l_values_seq % store the values of a set
-		\prop_new:N \l_setoptions_prop % prop to store keyval options
+		\seq_new:N \l_values_seq         % store the values of a set
+		\prop_new:N \l_setoptions_prop   % prop to store keyval options
 		\clist_new:N \l_setoptions_clist % clist to get prop back to keyval str
 		% keyval options for the environment
 		\keys_define:nn {kiviatchart_set} {
@@ -133,7 +133,7 @@
 			% forward all other options to tikz
 			unknown      .code:n = {\prop_put:Nxx \l_setoptions_prop {\l_keys_key_str} {####1}}
 		}
-		% set default options
+		% set default options (exp_args to expand \c_space_tl)
 		\exp_args:Nnx \keys_set:nn {kiviatchart_set} {
     		dot-options             = {fill,circle,draw,inner\c_space_tl sep=1pt},
 			color                   = black,
@@ -162,36 +162,108 @@
 
 		% polygone formed by values on dim axis
 		\exp_last_unbraced:No \draw {\l_setoptions_str} (D1-\firstval) foreach \v [count=\i from 1] in \values {-- (D\i-\v)} -- cycle;
-    }
+	}
 
-	% start a picture
+	% start a picture (expand option before \begin)
 	\exp_last_unbraced:Nno \begin {tikzpicture} {\l_tikz_str}
 }{
 	% close the picture
 	\end{tikzpicture}
 }
-\ExplSyntaxOff
 
-\begin{document}
-\NewDocumentCommand\invLabel{m}{\colorbox{black}{\textcolor{white}{#1}}}
-\begin{kiviatchart}[scale=1]
-	\begin{dims}[label-cs=invLabel]
-		\value[above]{Infrastructure}
-		\value[above]{Réseaux}
-		\value[left]{Systèmes}
-		\value[left]{Développement}
-		\value[below]{Méthodologie}
-		\value[right]{Veille}
-		\value[right]{Management}
-	\end{dims}
-	\begin{set}
-		\value{4}
-		\value{3}
-		\value{4}
-		\value{5}
-		\value{4}
-		\value{5}
-		\value{4}
-	\end{set}
-\end{kiviatchart}
-\end{document}
+\NewDocumentEnvironment {skills} {o} {
+	\newcounter{skillcount}
+	\keys_define:nn {skills} {
+		n        .tl_set:N         = \l_n_tl,       % the number of circles
+		n        .value_required:n = true,
+		v-sep    .tl_set:N         = \l_vsep_tl,    % vertical separator
+		h-sep    .tl_set:N         = \l_hsep_tl,    % horizontal separator (circle)
+		radius   .tl_set:N         = \l_radius_tl,  % radius
+		gap      .tl_set:N         = \l_gap_tl,     % gap between circle
+		label-cs .str_set:N        = \l_labelcs_str % cs name to format labels
+	}
+	\cs_new:Npn \identity ##1 {##1} % identity cs to return the first argument as is
+	% set default options
+	\keys_set:nn {skills} {
+		v-sep  = 0.1,
+		h-sep  = 0.5,
+		radius = 0.25,
+		gap    = 0.05,
+		label-cs = identity
+	}
+	% override with given options if any
+	\IfValueT {#1} {\keys_set:nn {skills} {#1}}
+
+ 	\NewDocumentCommand \skill {mm} {
+		\pgfmathparse{##2/100}
+		\let\perc\pgfmathresult
+
+		\pgfmathparse{(\l_radius_tl*2*\theskillcount) + (\l_vsep_tl*\theskillcount)}
+		\let\y\pgfmathresult
+
+		\pgfmathparse{\l_n_tl-1}
+		\let\n\pgfmathresult
+
+		% \filldraw[fill=black, draw=none] (0,-\y) rectangle (\barone,-\y-\height);
+		\draw [fill\c_space_tl fraction={black}{\perc}] foreach \i in {0,...,\n} {(\l_hsep_tl*\i+\l_gap_tl*\i, -\y) circle (\l_radius_tl)};
+
+		\node [left] at (-\l_hsep_tl,-\y) {\use:c {\l_labelcs_str} {##1}};
+		\addtocounter{skillcount}{1}
+	}
+
+	\begin{tikzpicture}
+		\setcounter{skillcount}{0}
+		\tikzset{fill\c_space_tl fraction/.style\c_space_tl n\c_space_tl args={2}{path\c_space_tl picture={
+							\fill[#1] (path\c_space_tl picture\c_space_tl bounding\c_space_tl box.south\c_space_tl west) rectangle
+							($(path\c_space_tl picture\c_space_tl bounding\c_space_tl box.north\c_space_tl west)!##2!(path \c_space_tl picture\c_space_tl bounding\c_space_tl box.north\c_space_tl east)$);}}}
+}{
+	\end{tikzpicture}
+}
+
+% % Environment to hold a new bar chart
+% \NewDocumentEnvironment {barchart} {o} {
+% 	\newcounter{barcount}
+% 	% keyval options for the environment
+% 	\keys_define:nn {barchart} {
+% 		bar-width .tl_set:N = \l_barwidth_tl,
+% 		bar-sep .tl_set:N = \l_barsep_tl,
+% 		max-width .tl_set:N = \l_maxwidth_tl, % maximum bar width, in cm
+% 		max-width .value_required = true
+% 	}
+% 	% set default options
+% 	\keys_set:nn {barchart} {
+% 		bar-width = 0.35,
+% 		bar-sep = 0.2
+% 	}
+% 	% override with given options if any
+% 	\IfValueT {#1} {\keys_set:nn {barchart} {#1}}
+
+% 	% Command to add a bar to the bar chart
+% 	% 1: bar label
+% 	% 2: percentage the current bar should take up of the total width
+% 	\NewDocumentCommand \baritem {mm} { 
+% 		\pgfmathparse{##2}
+% 		\let\perc\pgfmathresult
+		
+% 		\pgfmathparse{\l_maxwidth_tl}
+% 		\let\barsize\pgfmathresult
+		
+% 		\pgfmathparse{\barsize*##2/100}
+% 		\let\barone\pgfmathresult
+		
+% 		\pgfmathparse{(\barwidth*\thebarcount) + (\barsep*\thebarcount)}
+% 		\let\barx\pgfmathresult
+		
+% 		\filldraw[fill=black, draw=none] (0,-\barx) rectangle (\barone,-\barx-\barwidth);
+		
+% 		\node[label=180:\colorbox{black}{\textcolor{white}{##1}}] at (0,-\barx-0.175) {};
+% 		\addtocounter{barcount}{1}
+% 	}
+
+% 	\begin{tikzpicture}
+% 	\setcounter{barcount}{0}
+% }{
+% 	\end{tikzpicture}
+% }
+
+\ExplSyntaxOff
