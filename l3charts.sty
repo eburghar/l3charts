@@ -10,6 +10,8 @@
 \ExplSyntaxOn
 \makeatletter % to access latex2e variables
 
+\cs_new:Npn \identity #1 {#1} % identity cs to return the first argument as is
+
 % Environment to draw kiviat charts
 % Inside kiviatchar environement at leats one dims environement must be defined
 % followed by one or more set environment
@@ -69,8 +71,6 @@
 			label-cs      .str_set:N       = \l_labelcs_str, % name of the cs used to format label
 			unit-cs       .str_set:N       = \l_unitcs_str   % name of the cs used to format label
 		}
-		
-		\cs_new:Npn \identity ####1 {####1}             % identity cs to return the first argument as is
 		\cs_new:Npn \tinytt ####1 {\tiny\texttt{####1}} % cs to format unit labels
 		% set default environment options
 		\keys_set:nn {kiviatchart_dims} {
@@ -182,7 +182,6 @@
 		gap      .tl_set:N         = \l_gap_tl,     % gap between circle
 		label-cs .str_set:N        = \l_labelcs_str % cs name to format labels
 	}
-	\cs_new:Npn \identity ##1 {##1} % identity cs to return the first argument as is
 	% set default options
 	\keys_set:nn {skills} {
 		v-sep  = 0.1,
@@ -195,19 +194,13 @@
 	\IfValueT {#1} {\keys_set:nn {skills} {#1}}
 
  	\NewDocumentCommand \skill {mm} {
-		\pgfmathparse{##2/100}
-		\let\perc\pgfmathresult
+		\tl_set:Nx \l_perc_tl {\fp_to_decimal:n {##2 / 100}} 
+		\tl_set:Nx \l_y_tl {\fp_to_decimal:n {(\l_radius_tl*2*\theskillcount) + (\l_vsep_tl*\theskillcount)}}
+		\tl_set:Nx \l_m_tl {\fp_to_decimal:n {\l_n_tl - 1}}
 
-		\pgfmathparse{(\l_radius_tl*2*\theskillcount) + (\l_vsep_tl*\theskillcount)}
-		\let\y\pgfmathresult
+		\draw [fill\c_space_tl fraction={black}{\l_perc_tl}] foreach \i in {0,...,\l_m_tl} {(\l_hsep_tl*\i+\l_gap_tl*\i, -\l_y_tl) circle (\l_radius_tl)};
 
-		\pgfmathparse{\l_n_tl-1}
-		\let\n\pgfmathresult
-
-		% \filldraw[fill=black, draw=none] (0,-\y) rectangle (\barone,-\y-\height);
-		\draw [fill\c_space_tl fraction={black}{\perc}] foreach \i in {0,...,\n} {(\l_hsep_tl*\i+\l_gap_tl*\i, -\y) circle (\l_radius_tl)};
-
-		\node [left] at (-\l_hsep_tl,-\y) {\use:c {\l_labelcs_str} {##1}};
+		\node [left] at (-\l_hsep_tl,-\l_y_tl) {\use:c {\l_labelcs_str} {##1}};
 		\addtocounter{skillcount}{1}
 	}
 
@@ -221,49 +214,40 @@
 }
 
 % % Environment to hold a new bar chart
-% \NewDocumentEnvironment {barchart} {o} {
-% 	\newcounter{barcount}
-% 	% keyval options for the environment
-% 	\keys_define:nn {barchart} {
-% 		bar-width .tl_set:N = \l_barwidth_tl,
-% 		bar-sep .tl_set:N = \l_barsep_tl,
-% 		max-width .tl_set:N = \l_maxwidth_tl, % maximum bar width, in cm
-% 		max-width .value_required = true
-% 	}
-% 	% set default options
-% 	\keys_set:nn {barchart} {
-% 		bar-width = 0.35,
-% 		bar-sep = 0.2
-% 	}
-% 	% override with given options if any
-% 	\IfValueT {#1} {\keys_set:nn {barchart} {#1}}
+\NewDocumentEnvironment {barchart} {o} {
+	\newcounter{barcount}
+	% keyval options for the environment
+	\keys_define:nn {barchart} {
+		max-width .tl_set:N         = \l_maxwidth_tl, % maximum bar width, in cm
+		max-width .value_required:n = true,
+		bar-width .tl_set:N         = \l_barwidth_tl,
+		bar-sep   .tl_set:N         = \l_barsep_tl,
+		label-cs .str_set:N        = \l_labelcs_str   % cs name to format labels
+	}
+	% set default options
+	\keys_set:nn {barchart} {
+		bar-width = 0.35,
+		bar-sep   = 0.2,
+		label-cs  = identity
+	}
+	% override with given options if any
+	\IfValueT {#1} {\keys_set:nn {barchart} {#1}}
 
-% 	% Command to add a bar to the bar chart
-% 	% 1: bar label
-% 	% 2: percentage the current bar should take up of the total width
-% 	\NewDocumentCommand \baritem {mm} { 
-% 		\pgfmathparse{##2}
-% 		\let\perc\pgfmathresult
-		
-% 		\pgfmathparse{\l_maxwidth_tl}
-% 		\let\barsize\pgfmathresult
-		
-% 		\pgfmathparse{\barsize*##2/100}
-% 		\let\barone\pgfmathresult
-		
-% 		\pgfmathparse{(\barwidth*\thebarcount) + (\barsep*\thebarcount)}
-% 		\let\barx\pgfmathresult
-		
-% 		\filldraw[fill=black, draw=none] (0,-\barx) rectangle (\barone,-\barx-\barwidth);
-		
-% 		\node[label=180:\colorbox{black}{\textcolor{white}{##1}}] at (0,-\barx-0.175) {};
-% 		\addtocounter{barcount}{1}
-% 	}
+	% Command to add a bar to the bar chart
+	% #1: bar label
+	% #2: percentage the current bar should take up of the total width
+	\NewDocumentCommand \baritem {mm} { 
+		\tl_set:Nx \l_barone_tl {\fp_to_decimal:n {\l_maxwidth_tl * ##2 / 100}}
+		\tl_set:Nx \l_barx_tl {\fp_to_decimal:n {(\l_barwidth_tl*\thebarcount) + (\l_barsep_tl*\thebarcount)}}
+		\filldraw [fill=black, draw=none] (0,-\l_barx_tl) rectangle (\l_barone_tl,-\l_barx_tl-\l_barwidth_tl);
+		\node [left] at (0,-\l_barx_tl-0.175) {\use:c {\l_labelcs_str} {##1}};
+		\addtocounter{barcount}{1}
+	}
 
-% 	\begin{tikzpicture}
-% 	\setcounter{barcount}{0}
-% }{
-% 	\end{tikzpicture}
-% }
+	\begin{tikzpicture}
+	\setcounter{barcount}{0}
+}{
+	\end{tikzpicture}
+}
 
 \ExplSyntaxOff

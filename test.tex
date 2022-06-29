@@ -1,10 +1,12 @@
-\documentclass{standalone}
+\documentclass{article}
 \usepackage{l3charts}
 
 \renewcommand*\familydefault{\sfdefault}% Force the sansserif version of any font used
 
 \begin{document}
 \NewDocumentCommand\textinv{m}{\colorbox{black}{\textcolor{white}{#1}}}
+
+\section{kiviat chart}
 
 \begin{kiviatchart}[scale=1]
 	\begin{dims}[label-cs=textinv]
@@ -27,6 +29,8 @@
 	\end{set}
 \end{kiviatchart}
 
+\section{skills}
+
 \begin{skills}[n=5, label-cs=textinv]
 	\skill{Français}{95}
 	\skill{Anglais}{80}
@@ -34,13 +38,15 @@
 	\skill{Allemand}{20}
 \end{skills}
 
-% \begin{barchart}{5.5}
-% 	\baritem{JavaScript}{60}
-% 	\baritem{PHP}{100}
-% 	\baritem{SASS/LESS}{70}
-% 	\baritem{Bootstrap}{70}
-% 	\baritem{Git}{40}
-% 	\baritem{LaTeX}{60}
-% \end{barchart}
+\section{barchart}
+
+\begin{barchart}[max-width=5.5, label-cs=textinv]
+	\baritem{JavaScript}{60}
+	\baritem{PHP}{100}
+	\baritem{SASS/LESS}{70}
+	\baritem{Bootstrap}{70}
+	\baritem{Git}{40}
+	\baritem{LaTeX}{60}
+\end{barchart}
 
 \end{document}
