@@ -1,5 +1,5 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{l3charts}[2022/06/28 define a few customizable tikz charts using latex3]
+\ProvidesPackage{l3charts}[2022/06/28 0.1.0 Customizable tikz charts using latex3]
 
 \RequirePackage{expl3}
 \RequirePackage{xparse}
@@ -16,8 +16,8 @@
 % Inside kiviatchar environement at leats one dims environement must be defined
 % followed by one or more set environment
 \NewDocumentEnvironment {kiviatchart} {o} {
-	\prop_new:N \l_tikz_prop % properties for tikzpicture
-	\clist_new:N \l_tikz_clist % properties for tikzpicture as keyval string
+	\prop_clear_new:N \l_tikz_prop % properties for tikzpicture
+	\clist_clear_new:N \l_tikz_clist % properties for tikzpicture as keyval string
 	% keyval options for the environment
 	\keys_define:nn {kiviatchart} {
 		radius        .tl_set:N  = \R, % maximal diagram radius
@@ -41,7 +41,7 @@
 	\str_set:Nx \l_tikz_str {[\clist_use:Nn \l_tikz_clist {,}]}
 
 	% Command to set dimentions and values
-	\RenewDocumentCommand \value {om} {
+	\DeclareDocumentCommand \value {om} {
 		% when used inside set environment
 		\tl_if_eq:NnTF \@currenvir {set} {
 			% add new value
@@ -65,11 +65,11 @@
 	\NewDocumentEnvironment {dims} {o} {
 		% keyval options for the environment
 		\keys_define:nn {kiviatchart_dims} {
-			dim-options   .code:n          = {\str_set:Nn \l_dimoptions_str {[####1]}},   % options for dimensions axis
-			unit-options  .code:n          = {\str_set:Nn \l_unitoptions_str {[####1]}},  % options for unit polygones
-			label-options .code:n          = {\str_set:Nn \l_labeloptions_str {[####1]}}, % options for unit labels
-			label-cs      .str_set:N       = \l_labelcs_str, % name of the cs used to format label
-			unit-cs       .str_set:N       = \l_unitcs_str   % name of the cs used to format label
+			dim-options   .tl_set:N  = \l_dimoptions_tl,   % options for dimensions axis
+			unit-options  .tl_set:N  = \l_unitoptions_tl,  % options for unit polygones
+			label-options .tl_set:N  = \l_labeloptions_tl, % options for unit labels
+			label-cs      .str_set:N = \l_labelcs_str,     % name of the cs used to format label
+			unit-cs       .str_set:N = \l_unitcs_str       % name of the cs used to format label
 		}
 		\cs_new:Npn \tinytt ####1 {\tiny\texttt{####1}} % cs to format unit labels
 		% set default environment options
@@ -82,19 +82,19 @@
 		}
 		% override with given options if any
 		\IfValueT {##1} {\keys_set:nn {kiviatchart_dims} {##1}}
-		\seq_new:N \l_labels_seq       % sequence to keep labels from \value cs
-		\seq_new:N \l_labeloptions_seq % sequence to keep label options from \value cs
+		\seq_clear_new:N \l_labels_seq       % sequence to keep labels from \value cs
+		\seq_clear_new:N \l_labeloptions_seq % sequence to keep label options from \value cs
 	} {
     	% now that we have all the dimensions we can draw the picture
 		\tl_set:Nx \labels {\seq_use:Nn \l_labels_seq {,}} % , separated list of dimensions
 		\tl_set:Nx \D {\seq_count:N \l_labels_seq}         % number of dimensions
 		\tl_set:Nx \A {360/\D}                             % calculated angle between dimension axes
 
-		\path (0\c_colon_str 0cm) coordinate (O);% define coordinate for origin
+		\path (0\c_colon_str 0cm) coordinate (O); % define coordinate for origin
 
 		% draw the dimensions axis
 		\foreach \X in {1,...,\D} {
-			\exp_last_unbraced:No \draw {\l_dimoptions_str} (\X*\A \c_colon_str 0) -- (\X*\A \c_colon_str \R);
+			\exp_last_unbraced:Ne \draw {[\l_dimoptions_tl]} (\X*\A \c_colon_str 0) -- (\X*\A \c_colon_str \R);
 		}
 
 		\foreach \Y in {0,...,\U} {
@@ -104,14 +104,14 @@
 					% \fill (D\X-\Y) circle (1pt); % intersection points on the web
 			}
 			% units polygones
-			\exp_last_unbraced:No \draw {\l_unitoptions_str} (0 \c_colon_str \Y*\R/\U) foreach \X in {1,...,\D} {
+			\exp_last_unbraced:Ne \draw {[\l_unitoptions_tl]} (0 \c_colon_str \Y*\R/\U) foreach \X in {1,...,\D} {
 					-- (\X*\A \c_colon_str \Y*\R/\U)
 			} -- cycle;
 		}
 
 		% units labels
 		\foreach \Y in {1,...,\U} {
-			\exp_last_unbraced:No \node {\l_labeloptions_str} at (D1-\Y) {\use:c {\l_unitcs_str} {\Y}};
+			\exp_last_unbraced:Ne \node {[\l_labeloptions_tl]} at (D1-\Y) {\use:c {\l_unitcs_str} {\Y}};
 		}
 
 		% define labels for each dimension axis (names config option)
@@ -124,18 +124,18 @@
 	% Environment for values set
 	% draw set polygone
 	\NewDocumentEnvironment {set} {o} {
-		\seq_new:N \l_values_seq         % store the values of a set
-		\prop_new:N \l_setoptions_prop   % prop to store keyval options
-		\clist_new:N \l_setoptions_clist % clist to get prop back to keyval str
+		\seq_clear_new:N \l_values_seq         % store the values of a set
+		\prop_clear_new:N \l_setoptions_prop   % prop to store keyval options
+		\clist_clear_new:N \l_setoptions_clist % clist to get prop back to keyval str
 		% keyval options for the environment
 		\keys_define:nn {kiviatchart_set} {
-			dot-options  .code:n = {\str_set:Nn \l_dotoptions_str {[####1]}}, % options for polygone node
+			dot-options  .tl_set:N = \l_dotoptions_tl, % options for polygone node
 			% forward all other options to tikz
 			unknown      .code:n = {\prop_put:Nxx \l_setoptions_prop {\l_keys_key_str} {####1}}
 		}
 		% set default options (exp_args to expand \c_space_tl)
 		\exp_args:Nnx \keys_set:nn {kiviatchart_set} {
-    		dot-options             = {fill,circle,draw,inner\c_space_tl sep=1pt},
+    		dot-options             = {fill,circle,inner\c_space_tl sep=1pt},
 			color                   = black,
 			line\c_space_tl width   = 1.5pt,
 			opacity                 = 1,
@@ -148,7 +148,7 @@
 		\prop_map_inline:Nn \l_setoptions_prop {
 			\clist_put_right:Nn \l_setoptions_clist {####1=####2}
 		}
-		\str_set:Nx \l_setoptions_str {[\clist_use:Nn \l_setoptions_clist {,}]}
+		\str_set:Nx \l_setoptions_str {\clist_use:Nn \l_setoptions_clist {,}}
 
 	}{
 		% now that we have all the values, we can draw the points and the polygones
@@ -157,96 +157,180 @@
 
 		% dots on the dim axis
 		\foreach \v [count=\i from 1] in \values {
-			\exp_last_unbraced:No \node {\l_dotoptions_str} at (D\i-\v) {};
+			\exp_last_unbraced:Ne \node {[\l_dotoptions_tl]} at (D\i-\v) {};
 		}
 
 		% polygone formed by values on dim axis
-		\exp_last_unbraced:No \draw {\l_setoptions_str} (D1-\firstval) foreach \v [count=\i from 1] in \values {-- (D\i-\v)} -- cycle;
+		\exp_last_unbraced:Ne \draw {[\l_setoptions_str]} (D1-\firstval) foreach \v [count=\i from 1] in \values {-- (D\i-\v)} -- cycle;
 	}
 
-	% start a picture (expand option before \begin)
+	% start a picture (expand option before begin)
 	\exp_last_unbraced:Nno \begin {tikzpicture} {\l_tikz_str}
 }{
 	% close the picture
 	\end{tikzpicture}
 }
 
-\NewDocumentEnvironment {skills} {o} {
-	\newcounter{skillcount}
-	\keys_define:nn {skills} {
-		n        .tl_set:N         = \l_n_tl,       % the number of circles
-		n        .value_required:n = true,
-		v-sep    .tl_set:N         = \l_vsep_tl,    % vertical separator
-		h-sep    .tl_set:N         = \l_hsep_tl,    % horizontal separator (circle)
-		radius   .tl_set:N         = \l_radius_tl,  % radius
-		gap      .tl_set:N         = \l_gap_tl,     % gap between circle
-		label-cs .str_set:N        = \l_labelcs_str % cs name to format labels
+\NewDocumentEnvironment {ballchart} {o} {
+	\prop_clear_new:N \l_tikz_prop % properties for tikzpicture
+	\clist_clear_new:N \l_tikz_clist % properties for tikzpicture as keyval string
+	\keys_define:nn {ballchart} {
+		n             .tl_set:N         = \l_n_tl,            % the number of circles
+		n             .value_required:n = true,
+		v-sep         .tl_set:N         = \l_vsep_tl,         % vertical separator
+		h-sep         .tl_set:N         = \l_hsep_tl,         % horizontal separator (circle)
+		radius        .tl_set:N         = \l_radius_tl,       % radius
+		gap           .tl_set:N         = \l_gap_tl,          % gap between circle
+		label-cs      .str_set:N        = \l_labelcs_str,     % cs name to format labels
+		fill-options  .tl_set:N         = \l_filloptions_str, % options to fill balls with
+		draw-options  .tl_set:N         = \l_drawoptions_str, % options to draw balls with
+		label-options .tl_set:N         = \l_labeloptions_tl, % options for dimensions axis
+		% forward all other options to tikzpicture
+		unknown       .code:n           = {\prop_put:Nxx \l_tikz_prop {\l_keys_key_str} {##1}}
 	}
 	% set default options
-	\keys_set:nn {skills} {
-		v-sep  = 0.1,
-		h-sep  = 0.5,
-		radius = 0.25,
-		gap    = 0.05,
-		label-cs = identity
+	\keys_set:nn {ballchart} {
+		v-sep         = 0.1,
+		h-sep         = 0.5,
+		radius        = 0.25,
+		gap           = 0.05,
+		label-cs      = identity,
+		fill-options  = {fill=black},
+		draw-options  = {draw=black!30},
+		label-options = {left}
 	}
 	% override with given options if any
-	\IfValueT {#1} {\keys_set:nn {skills} {#1}}
+	\IfValueT {#1} {\keys_set:nn {ballchart} {#1}}
+	% turn the tikz prop into a keyval string
+	\prop_map_inline:Nn \l_tikz_prop {
+		\clist_put_right:Nn \l_tikz_clist {##1=##2}
+	}
+	\str_set:Nx \l_tikz_str {[\clist_use:Nn \l_tikz_clist {,}]}
 
- 	\NewDocumentCommand \skill {mm} {
+	\int_zero_new:N \l_count_int
+	% Command to add a new ballbar
+	% #1: label
+	% #2: percentage
+	\DeclareDocumentCommand \value {mm} {
 		\tl_set:Nx \l_perc_tl {\fp_to_decimal:n {##2 / 100}} 
-		\tl_set:Nx \l_y_tl {\fp_to_decimal:n {(\l_radius_tl*2*\theskillcount) + (\l_vsep_tl*\theskillcount)}}
+		\tl_set:Nx \l_y_tl {\fp_to_decimal:n {(\l_radius_tl*2 * \l_count_int) + (\l_vsep_tl * \l_count_int)}}
 		\tl_set:Nx \l_m_tl {\fp_to_decimal:n {\l_n_tl - 1}}
 
-		\draw [fill\c_space_tl fraction={black}{\l_perc_tl}] foreach \i in {0,...,\l_m_tl} {(\l_hsep_tl*\i+\l_gap_tl*\i, -\l_y_tl) circle (\l_radius_tl)};
+		\exp_last_unbraced:Ne \draw {[\l_drawoptions_str, fill\c_space_tl fraction={\l_perc_tl}]} foreach \i in {0,...,\l_m_tl} {(\l_hsep_tl * \i + \l_gap_tl * \i, -\l_y_tl) circle (\l_radius_tl)};
 
-		\node [left] at (-\l_hsep_tl,-\l_y_tl) {\use:c {\l_labelcs_str} {##1}};
-		\addtocounter{skillcount}{1}
+		\exp_last_unbraced:Ne \node {[\l_labeloptions_tl]} at (-\l_hsep_tl/2, -\l_y_tl) {\use:c {\l_labelcs_str} {##1}};
+		\int_incr:N \l_count_int
 	}
 
-	\begin{tikzpicture}
-		\setcounter{skillcount}{0}
-		\tikzset{fill\c_space_tl fraction/.style\c_space_tl n\c_space_tl args={2}{path\c_space_tl picture={
-							\fill[#1] (path\c_space_tl picture\c_space_tl bounding\c_space_tl box.south\c_space_tl west) rectangle
-							($(path\c_space_tl picture\c_space_tl bounding\c_space_tl box.north\c_space_tl west)!##2!(path \c_space_tl picture\c_space_tl bounding\c_space_tl box.north\c_space_tl east)$);}}}
+	\exp_last_unbraced:Nno \begin {tikzpicture} {\l_tikz_str}
+		\tikzset{fill\c_space_tl fraction/.style\c_space_tl n\c_space_tl args={1}{
+			path\c_space_tl picture={
+				\exp_last_unbraced:Ne \fill {[\l_filloptions_str]} (path\c_space_tl picture\c_space_tl bounding\c_space_tl box.south\c_space_tl west) rectangle
+					($(path\c_space_tl picture\c_space_tl bounding\c_space_tl box.north\c_space_tl west)!##1!(path \c_space_tl picture\c_space_tl bounding\c_space_tl box.north\c_space_tl east)$);
+    			}
+			}
+		}
 }{
 	\end{tikzpicture}
 }
 
 % % Environment to hold a new bar chart
 \NewDocumentEnvironment {barchart} {o} {
-	\newcounter{barcount}
+	\prop_clear_new:N \l_tikz_prop % properties for tikzpicture
+	\clist_clear_new:N \l_tikz_clist % properties for tikzpicture as keyval string
 	% keyval options for the environment
 	\keys_define:nn {barchart} {
-		max-width .tl_set:N         = \l_maxwidth_tl, % maximum bar width, in cm
-		max-width .value_required:n = true,
-		bar-width .tl_set:N         = \l_barwidth_tl,
-		bar-sep   .tl_set:N         = \l_barsep_tl,
-		label-cs .str_set:N        = \l_labelcs_str   % cs name to format labels
+		width        .tl_set:N         = \l_width_tl,        % maximum bar width, in cm
+		width        .value_required:n = true,
+		height       .tl_set:N         = \l_height_tl,
+		gap          .tl_set:N         = \l_gap_tl,
+		fill-options .tl_set:N         = \l_filloptions_str, % options to fill bar with
+		draw-options .tl_set:N         = \l_drawoptions_str, % options to draw bar with
+		label-cs     .str_set:N        = \l_labelcs_str,     % cs name to format labels
+		% forward all other options to tikzpicture
+		unknown      .code:n           = {\prop_put:Nxx \l_tikz_prop {\l_keys_key_str} {##1}}
 	}
 	% set default options
 	\keys_set:nn {barchart} {
-		bar-width = 0.35,
-		bar-sep   = 0.2,
-		label-cs  = identity
+		height       = 0.35,
+		gap          = 0.25,
+		fill-options = {fill=black},
+		draw-options = {draw=black!20},
+		label-cs     = identity
 	}
 	% override with given options if any
 	\IfValueT {#1} {\keys_set:nn {barchart} {#1}}
+	% turn the tikz prop into a keyval string
+	\prop_map_inline:Nn \l_tikz_prop {
+		\clist_put_right:Nn \l_tikz_clist {##1=##2}
+	}
+	\str_set:Nx \l_tikz_str {[\clist_use:Nn \l_tikz_clist {,}]}
 
+	\int_zero_new:N \l_count_int
 	% Command to add a bar to the bar chart
 	% #1: bar label
 	% #2: percentage the current bar should take up of the total width
-	\NewDocumentCommand \baritem {mm} { 
-		\tl_set:Nx \l_barone_tl {\fp_to_decimal:n {\l_maxwidth_tl * ##2 / 100}}
-		\tl_set:Nx \l_barx_tl {\fp_to_decimal:n {(\l_barwidth_tl*\thebarcount) + (\l_barsep_tl*\thebarcount)}}
-		\filldraw [fill=black, draw=none] (0,-\l_barx_tl) rectangle (\l_barone_tl,-\l_barx_tl-\l_barwidth_tl);
-		\node [left] at (0,-\l_barx_tl-0.175) {\use:c {\l_labelcs_str} {##1}};
-		\addtocounter{barcount}{1}
+	\DeclareDocumentCommand \value {mm} {
+		\tl_set:Nx \l_barwidth_tl {\fp_to_decimal:n {\l_width_tl * ##2 / 100}}
+		\tl_set:Nx \l_barx_tl {\fp_to_decimal:n {(\l_height_tl * \l_count_int) + (\l_gap_tl * \l_count_int)}}
+		\exp_last_unbraced:Ne \draw {[\l_drawoptions_str]} (0,-\l_barx_tl) rectangle (\l_width_tl, -\l_barx_tl - \l_height_tl);
+		\exp_last_unbraced:Ne \fill {[\l_filloptions_str]} (0,-\l_barx_tl) rectangle (\l_barwidth_tl, -\l_barx_tl - \l_height_tl);
+		\node [left] at (0, -\l_barx_tl - 0.175) {\use:c {\l_labelcs_str} {##1}};
+		\int_incr:N \l_count_int
 	}
 
-	\begin{tikzpicture}
-	\setcounter{barcount}{0}
+	% start a picture (expand option before begin)
+	\exp_last_unbraced:Nno \begin {tikzpicture} {\l_tikz_str}
 }{
+	\end{tikzpicture}
+}
+
+\NewDocumentEnvironment {bubblechart} {o} {
+	\prop_clear_new:N \l_tikz_prop % properties for tikzpicture
+	\clist_clear_new:N \l_tikz_clist % properties for tikzpicture as keyval string
+	% keyval options for the environment
+	\keys_define:nn {bubblechart} {
+    	radius       .tl_set:N  = \l_radius_tl,       % max radius
+    	gap          .tl_set:N  = \l_gap_tl,
+		fill-options .tl_set:N  = \l_filloptions_str, % color to fill bubble with
+		draw-options .tl_set:N  = \l_drawoptions_str, % color to draw bubble with
+		label-cs     .str_set:N = \l_labelcs_str,     % cs name to format labels
+		% forward all other options to tikzpicture
+		unknown      .code:n   = {\prop_put:Nxx \l_tikz_prop {\l_keys_key_str} {##1}}
+	}
+	% set default options
+	\keys_set:nn {bubblechart} {
+    	radius       = 1,
+		gap          = 0.3,
+		fill-options = {fill=black},
+		draw-options = {draw=black!30},
+		label-cs     = identity
+	}
+	% override with given options if any
+	\IfValueT {#1} {\keys_set:nn {bubblechart} {#1}}
+	% turn the tikz prop into a keyval string
+	\prop_map_inline:Nn \l_tikz_prop {
+		\clist_put_right:Nn \l_tikz_clist {##1=##2}
+	}
+	\str_set:Nx \l_tikz_str {[\clist_use:Nn \l_tikz_clist {,}]}
+
+	\int_zero_new:N \l_count_int
+	% Command to add a bubble
+	% #1: label
+	% #2: percent
+    \DeclareDocumentCommand \value {mm} {
+        \tl_set:Nx \l_bubbleradius_tl {\fp_to_decimal:n {\l_radius_tl * ##2 / 100}}
+        \tl_set:Nx \l_x_tl {\fp_to_decimal:n {\l_count_int * (\l_radius_tl * 2 + \l_gap_tl)}}
+		\exp_last_unbraced:Ne \draw {[\l_drawoptions_str]} (\l_x_tl, 0) circle (\l_radius_tl); 
+		\exp_last_unbraced:Ne \fill {[\l_filloptions_str]} (\l_x_tl, 0) circle (\l_bubbleradius_tl);
+		\node [above] at (\l_x_tl, 1) {\use:c {\l_labelcs_str} {##1}};
+		\int_incr:N \l_count_int
+    }
+
+	% start a picture (expand option before begin)
+	\exp_last_unbraced:Nno \begin {tikzpicture} {\l_tikz_str}
+
+} {
 	\end{tikzpicture}
 }
 
