@@ -4,8 +4,10 @@
 \usepackage[parfill]{parskip}
 \usepackage{geometry}
 \usepackage{hyperref}
+\usepackage{booktabs}
 
-% colored links
+% Change the layout
+%% colored links
 \hypersetup{
 	colorlinks,
 	citecolor=black,
@@ -13,64 +15,73 @@
 	linkcolor=red,
 	urlcolor=blue
 }
-
-% smaller margins
+%% smaller margins
 \geometry{
 	a4paper,
 	total={150mm,257mm},
 	left=40mm,
 	top=20mm,
 }
+%% remove first paragraph line indentation
+\setlength{\parindent}{0pt}
+
+
+% Add macro and env to avoid repetitions
+%% format label white on black
+\NewDocumentCommand\textinv{m}{\colorbox{black}{\textcolor{white}{#1}}}
+%% format environment name
+\NewDocumentCommand\env{m}{\texttt{#1} (\emph{env})}
+%% format environement use
+\NewDocumentCommand\envdef{moO{...}}{\cs{begin}\{\texttt{#1}\}#2\\\indent#3\\\cs{end}\{\texttt{#1}\}}
+%% format environment definition
+\NewDocumentEnvironment{Environment}{moo}{%%
+	\begin{environment}{#1}
+		\envdef{#1}[#2][#3]\\\\
+		} {%%
+	\end{environment}
+}
+%% format property list for options
+\NewDocumentEnvironment{props}{o}{%%
+	\NewDocumentCommand\prop{mom}{\texttt{##1} & \IfValueT{##2}{\texttt{##2}} & ##3\\ \addlinespace}
+	\begin{tabular}{lp{0.3\linewidth}p{0.4\linewidth}} \toprule
+		\textsf{Key} & \textsf{Default value} & \textsf{Description} \\
+		\midrule
+		} {
+    \bottomrule
+	\end{tabular}
+}
+%% typeset TikZ
+\NewDocumentCommand{\TikZ}{}{Ti\textit{k}Z\xspace}
+
+% Start document
 
 \title{The \texttt{l3charts} package}
 \author{Éric BURGHARD}
 \date{2022/07/01}
-
-% format label white on black
-\NewDocumentCommand\textinv{m}{\colorbox{black}{\textcolor{white}{#1}}}
-% format environment name
-\NewDocumentCommand\env{m}{\texttt{#1} (\emph{env})}
-% format environement use
-\NewDocumentCommand\envdef{moO{...}}{\cs{begin}\{\texttt{#1}\}#2\\\indent#3\\\cs{end}\{\texttt{#1}\}}
-% format environment definition
-\NewDocumentEnvironment{Environment}{moo}{%
-	\begin{environment}{#1}
-		\envdef{#1}[#2][#3]\\\\
-		} {%
-	\end{environment}
-}
-% format property list for options
-\NewDocumentEnvironment{props}{o}{%
-	\NewDocumentCommand\prop{mom}{\texttt{##1} & \IfValueT{##2}{\texttt{##2}} & ##3\\}
-	\begin{tabular}{lp{0.3\linewidth}p{0.4\linewidth}}
-		\textbf{key} & \textbf{default} & \textbf{description} \\
-		\hline
-		} {
-	\end{tabular}
-}
-% remove first paragraph line indentation
-\setlength{\parindent}{0pt}
+\changes{0.1.0}{2022/07/01}{initial version}
 
 \RecordChanges
 \PageIndex
 
-\changes{0.1.0}{2022/07/01}{initial version}
-
 \begin{document}
 \maketitle
 \begin{abstract}
-	This package defines a few simple tikz charts that can be drawn using \LaTeX{} environments. This has
-	mainly been developped as an experimentation of \texttt{expl3} (expansion control and keyval list) for
-	checking what \LaTeX3 brought to really facilitate package developpement.
+	This package defines a few simple TikZ{} charts that can be drawn using \LaTeX{}
+	environments. This has mainly been developped as an experimentation of \texttt{expl3}
+	for checking what \LaTeX3 really brought to facilitate package developpement (expansion
+	control, clist, seq, prop, ...).
 \end{abstract}
 \tableofcontents
 
 \section{About this documentation}
 
-For me \LaTeX{} litterate programming and \texttt{docstrip} in particular is just an hugly
-hack that turn the code and the documentation unreadable. If you know modern tools like
-\href{https://doc.rust-lang.org/cargo/commands/cargo-doc.html}{\texttt{cargo doc}} you know
-what I mean. Perhaps the naming convention of \LaTeX3 would one day allow to have more powerful
+In my opinion \LaTeX{} literate programming is just an ugly hack that
+turns the code and the documentation unreadable. If you used modern tools like
+\href{https://doc.rust-lang.org/cargo/commands/cargo-doc.html}{\texttt{cargo doc}} which typeset
+index, and crossreference your code documentation without the need of inserting any command, you
+probably also feel that \texttt{docstrip} is perhaps the component of \LaTeX{} which aged the most.
+
+Perhaps the naming convention of \LaTeX3 would one day allow to have more powerful
 tools for automatic documentation extraction, but in the meantime, I think that writing the
 doc separately is easier and more maintenable.
 
@@ -79,6 +90,7 @@ doc separately is easier and more maintenable.
 The \href{https://en.wikipedia.org/wiki/Radar_chart}{kiviat chart} or \emph{radar chart} allows
 to represent one or several set along several dimensions.
 
+\DescribeEnv{kiviatchart}
 \begin{Environment}{kiviatchart}[\oarg{clist}]
 	Environment that hold a kiviat chart. \oarg{clist} is a list of the following options
 
@@ -98,9 +110,9 @@ to represent one or several set along several dimensions.
 	\oarg{clist} is a list of the following options
 
 	\begin{props}[\oarg{clist}]
-		\prop{dim-options}[\{opacity=0.8\}]{tikz options for drawing dimensions axis}
-		\prop{unit-options}[\{opacity=0.3\}]{tikz options for drawing unit polygones}
-		\prop{label-options}[\{opacity=0.5, below\}]{tikz options drawing for unit labels}
+		\prop{dim-options}[\{opacity=0.8\}]{TikZ{} options for drawing dimensions axis}
+		\prop{unit-options}[\{opacity=0.3\}]{TikZ{} options for drawing unit polygones}
+		\prop{label-options}[\{opacity=0.5, below\}]{TikZ{} options drawing for unit labels}
 		\prop{label-cs}[identity]{name of the cs used to format labels}
 		\prop{unit-cs}[tinyt]{name of the cs used to format labels}
 	\end{props}
@@ -113,18 +125,21 @@ to represent one or several set along several dimensions.
 	\end{macro}
 
 	\begin{macro}{value}
-		Inside \env{dims}, \cs{value}\oarg{clist}\marg{label} is used to add a dimension to the kiviat chart
+		Inside \env{dims}, \cs{value}\oarg{clist}\marg{label} is used to add a dimension
+		to the kiviat chart
 	\end{macro}
 \end{Environment}
 
 \subsection{Sets}
 
 \begin{Environment}{set}[\oarg{clist}][\cs{value}\marg{int}\\\indent...]
-	\env{set} is used to add a new set to the kiviat chart. \oarg{clist} is a list of the following options :
+	\env{set} is used to add a new set to the kiviat chart. \oarg{clist} is a list of the
+	following options :
 
 	\begin{props}[\oarg{clist}]
 		\prop{dot-options}[\{fill, circle, inner~sep=1pt\}]{options for polygone node}
-		\prop{*}[\{color=black, line~width=1.5pt, opacity=1, fill~opacity=0.3, fill=gray\}]{all other options are passed to \cs{draw} cs which draws the polygone}
+		\prop{*}[\{color=black, line~width=1.5pt, opacity=1, fill~opacity=0.3,
+		fill=gray\}]{all other options are passed to \cs{draw} cs which draws the polygone}
 	\end{props}
 
 	\begin{macro}{value}
@@ -320,7 +335,7 @@ Format labels, show circles, change color, add more circles.
 \end{ballchart}
 \end{minted}
 
-\begin{ballchart}[n=6, label-cs=textinv, v-sep=0.2, fill-options={fill=red!50,fill opacity: 0.5}, draw-options={draw=black,dotted}]
+\begin{ballchart}[n=6, label-cs=textinv, v-sep=0.2, fill-options={fill=red!50}, draw-options={draw=black,dotted}]
   \value{Dim 1}{95}
   \value{Dim 2}{80}
   \value{Dim 3}{80}
@@ -338,8 +353,8 @@ Format labels, show circles, change color, add more circles.
 		\prop{width}{maximum width (\textbf{required})}
 		\prop{height}[0.35]{bar height}
 		\prop{gap}[0.25]{}
-		\prop{fill-options}[\{fill=black\}]{tikz option to fill the bar with}
-		\prop{draw-options}[\{draw=black!20\}]{tikz option to draw the bar with}
+		\prop{fill-options}[\{fill=black\}]{TikZ{} option to fill the bar with}
+		\prop{draw-options}[\{draw=black!20\}]{TikZ{} option to draw the bar with}
 		\prop{label-cs}[identity]{cs name to format labels}
 		\prop{*}{all other options are passed to \env{tikzpicture}}
 	\end{props}
@@ -408,14 +423,15 @@ Change color, show as a gauge.
 	\begin{props}[\oarg{clist}]
 		\prop{radius}[1]{max radius}
 		\prop{gap}[0.3]{gap between bubbles}
-		\prop{fill-options}[\{fill=black\}]{tikz options to fill bubble with}
-		\prop{draw-options}[\{draw=black!30\}]{tikz options to draw bubble with}
+		\prop{fill-options}[\{fill=black\}]{TikZ{} options to fill bubble with}
+		\prop{draw-options}[\{draw=black!30\}]{TikZ{} options to draw bubble with}
 		\prop{label-cs}[identity]{cs name to format labels}
 		\prop{*}{all other options are passed to \env{tikzpicture}}
 	\end{props}
 
 	\begin{macro}{value}
-		Inside \env{bubblechart}, \cs{value}\marg{label}\marg{percent} is used to add a new bubble.
+		Inside \env{bubblechart}, \cs{value}\marg{label}\marg{percent} is used to add
+		a new bubble.
 	\end{macro}
 
 \end{Environment}
@@ -466,4 +482,5 @@ Format labels, change colors, show absolute limit (100\%)
 
 \PrintChanges
 \PrintIndex
+
 \end{document}

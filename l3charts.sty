@@ -10,7 +10,7 @@
 \ExplSyntaxOn
 \makeatletter % to access latex2e variables
 
-\cs_new:Npn \identity #1 {#1} % identity cs to return the first argument as is
+\cs_set:Npn \identity #1 {#1} % identity cs to return the first argument as is
 
 % Environment to draw kiviat charts
 % Inside kiviatchar environement at leats one dims environement must be defined
@@ -71,7 +71,7 @@
 			label-cs      .str_set:N = \l_labelcs_str,     % name of the cs used to format label
 			unit-cs       .str_set:N = \l_unitcs_str       % name of the cs used to format label
 		}
-		\cs_new:Npn \tinytt ####1 {\tiny\texttt{####1}} % cs to format unit labels
+		\cs_set:Npn \tinytt ####1 {\tiny\texttt{####1}} % cs to format unit labels
 		% set default environment options
 		\keys_set:nn {kiviatchart_dims} {
 			dim-options   = {opacity=0.8},
