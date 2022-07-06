@@ -66,12 +66,12 @@
 		% keyval options for the environment
 		\keys_define:nn {kiviatchart_dims} {
 			dim-options   .tl_set:N  = \l_dimoptions_tl,   % options for dimensions axis
-			unit-options  .tl_set:N  = \l_unitoptions_tl,  % options for unit polygones
+			unit-options  .tl_set:N  = \l_unitoptions_tl,  % options for unit polygons
 			label-options .tl_set:N  = \l_labeloptions_tl, % options for unit labels
 			label-cs      .str_set:N = \l_labelcs_str,     % name of the cs used to format label
 			unit-cs       .str_set:N = \l_unitcs_str       % name of the cs used to format label
 		}
-		\cs_set:Npn \tinytt ####1 {\tiny\texttt{####1}} % cs to format unit labels
+		\cs_set:Npn \tinytt ####1 {\texttt{\tiny ####1}} % cs to format unit labels
 		% set default environment options
 		\keys_set:nn {kiviatchart_dims} {
 			dim-options   = {opacity=0.8},
@@ -103,7 +103,7 @@
 					\path (\X*\A \c_colon_str \Y*\R/\U) coordinate (D\X-\Y);
 					% \fill (D\X-\Y) circle (1pt); % intersection points on the web
 			}
-			% units polygones
+			% units polygons
 			\exp_last_unbraced:Ne \draw {[\l_unitoptions_tl]} (0 \c_colon_str \Y*\R/\U) foreach \X in {1,...,\D} {
 					-- (\X*\A \c_colon_str \Y*\R/\U)
 			} -- cycle;
@@ -122,14 +122,14 @@
 	}
 
 	% Environment for values set
-	% draw set polygone
+	% draw set polygon
 	\NewDocumentEnvironment {set} {o} {
 		\seq_clear_new:N \l_values_seq         % store the values of a set
 		\prop_clear_new:N \l_setoptions_prop   % prop to store keyval options
 		\clist_clear_new:N \l_setoptions_clist % clist to get prop back to keyval str
 		% keyval options for the environment
 		\keys_define:nn {kiviatchart_set} {
-			dot-options  .tl_set:N = \l_dotoptions_tl, % options for polygone node
+			dot-options  .tl_set:N = \l_dotoptions_tl, % options for polygon node
 			% forward all other options to tikz
 			unknown      .code:n = {\prop_put:Nxx \l_setoptions_prop {\l_keys_key_str} {####1}}
 		}
@@ -151,7 +151,7 @@
 		\str_set:Nx \l_setoptions_str {\clist_use:Nn \l_setoptions_clist {,}}
 
 	}{
-		% now that we have all the values, we can draw the points and the polygones
+		% now that we have all the values, we can draw the points and the polygons
 		\tl_set:Nx \values {\seq_use:Nn \l_values_seq {,}}
 		\seq_get_left:NN \l_values_seq \firstval
 
@@ -160,7 +160,7 @@
 			\exp_last_unbraced:Ne \node {[\l_dotoptions_tl]} at (D\i-\v) {};
 		}
 
-		% polygone formed by values on dim axis
+		% polygon formed by values on dim axis
 		\exp_last_unbraced:Ne \draw {[\l_setoptions_str]} (D1-\firstval) foreach \v [count=\i from 1] in \values {-- (D\i-\v)} -- cycle;
 	}
 
