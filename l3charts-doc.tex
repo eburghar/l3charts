@@ -1,168 +1,156 @@
-\documentclass{ltxdoc}
+\documentclass{l3charts-doc}
 \usepackage{l3charts}
-\usepackage{minted}
-\usepackage[parfill]{parskip}
-\usepackage{geometry}
-\usepackage{hyperref}
-\usepackage{booktabs}
 
-% Change the layout
-%% colored links
+% setup 
 \hypersetup{
-	colorlinks,
-	citecolor=black,
-	filecolor=black,
-	linkcolor=red,
-	urlcolor=blue
-}
-%% smaller margins
-\geometry{
-	a4paper,
-	total={150mm,257mm},
-	left=40mm,
-	top=20mm,
-}
-%% remove first paragraph line indentation
-\setlength{\parindent}{0pt}
+  keeppdfinfo,
+  pdftitle={The l3charts package},
+  pdfauthor={Éric BURGHARD<eric@itsufficient.me>},
+  pdfsubject={Customizable charts made with TikZ and LaTeX3},
+  pdfkeywords={LaTeX3, TikZ},
+    pdfcopyright={\textcopyright\ 2022 Éric BURGHARD\textLF
+      This work may be distributed and/or modified under the conditions
+      of the LaTeX Project Public License, either version 1.3c of this
+      license or (at your option) any later version.\textLF
+      This work has the LPPL maintenance status `maintained'.},
+    pdflicenseurl={https://github.com/eburghar/l3charts},
+    pdflang={en-GB}
+  }
 
-
-% Add macro and env to avoid repetitions
-%% format label white on black
+% format label white on black
 \NewDocumentCommand\textinv{m}{\colorbox{black}{\textcolor{white}{#1}}}
-%% format environment name
-\NewDocumentCommand\env{m}{\texttt{#1} (\emph{env})}
-%% format environement use
-\NewDocumentCommand\envdef{moO{...}}{\cs{begin}\{\texttt{#1}\}#2\\\indent#3\\\cs{end}\{\texttt{#1}\}}
-%% format environment definition
-\NewDocumentEnvironment{Environment}{moo}{%%
-	\begin{environment}{#1}
-		\envdef{#1}[#2][#3]\\\\
-		} {%%
-	\end{environment}
-}
-%% format property list for options
-\NewDocumentEnvironment{props}{o}{%%
-	\NewDocumentCommand\prop{mom}{\texttt{##1} & \IfValueT{##2}{\texttt{##2}} & ##3\\ \addlinespace}
-	\begin{tabular}{lp{0.3\linewidth}p{0.4\linewidth}} \toprule
-		\textsf{Key} & \textsf{Default value} & \textsf{Description} \\
-		\midrule
-		} {
-    \bottomrule
-	\end{tabular}
-}
-%% typeset TikZ
-\NewDocumentCommand{\TikZ}{}{Ti\textit{k}Z\xspace}
 
 % Start document
+\RecordChanges
+\PageIndex
 
 \title{The \texttt{l3charts} package}
 \author{Éric BURGHARD}
 \date{2022/07/01}
 \changes{0.1.0}{2022/07/01}{initial version}
-
-\RecordChanges
-\PageIndex
+\def\githuburl{https://github.com/eburghar/l3charts}
 
 \begin{document}
-\maketitle
+\newgeometry{total={160mm,257mm},left=25mm,top=30mm}
+
+\maketitle\thispagestyle{empty}
 \begin{abstract}
-	This package defines a few simple TikZ{} charts that can be drawn using \LaTeX{}
-	environments. This has mainly been developped as an experimentation of \texttt{expl3}
-	for checking what \LaTeX3 really brought to facilitate package developpement (expansion
-	control, clist, seq, prop, ...).
+  This package defines a few simple \TikZ charts that can be drawn using \LaTeX{}
+  environments. This has mainly been developed as an experimentation of \texttt{expl3}
+  for checking what \LaTeX3 really brought to facilitate package development (expansion
+  control, clist, seq, prop, ...).
 \end{abstract}
 \tableofcontents
+\newpage
+
+\newgeometry{total={150mm,257mm},left=45mm,top=20mm}
 
 \section{About this documentation}
 
-In my opinion \LaTeX{} literate programming is just an ugly hack that
-turns the code and the documentation unreadable. If you used modern tools like
-\href{https://doc.rust-lang.org/cargo/commands/cargo-doc.html}{\texttt{cargo doc}} which typeset
-index, and crossreference your code documentation without the need of inserting any command, you
-probably also feel that \texttt{docstrip} is perhaps the component of \LaTeX{} which aged the most.
+I doubt that \LaTeX{} will have one day a modern documentation system as powerful as \href{https://doc.rust-lang.org/cargo/commands/cargo-doc.html}{\texttt{cargo doc}} due to its
+typeless and syntaxless nature. In my opinion \LaTeX{} literate programming with \pkg{docstrip}
+is just an ugly hack that turns the code and the documentation unmaintainable, and it's probably
+the component of \LaTeX{} which aged the most.
 
-Perhaps the naming convention of \LaTeX3 would one day allow to have more powerful
-tools for automatic documentation extraction, but in the meantime, I think that writing the
-doc separately is easier and more maintenable.
+So I chose to write the documentation separately and borrowed much of the style from the
+\href{https://github.com/schlcht/microtype}{\pkg{microtype}} package which by the way, pushed
+the \pkg{docstrip} mastery to a \emph{black magic} level.
 
-\section{kiviat chart}
+\section{Kiviat chart}
+
+\subsection{Usage}
 
 The \href{https://en.wikipedia.org/wiki/Radar_chart}{kiviat chart} or \emph{radar chart} allows
 to represent one or several set along several dimensions.
 
 \DescribeEnv{kiviatchart}
-\begin{Environment}{kiviatchart}[\oarg{clist}]
-	Environment that hold a kiviat chart. \oarg{clist} is a list of the following options
+Environment that hold a kiviat chart. Accepts an optional argument \oarg{clist} which
+is comma separated list of keywords and values :
 
-	\begin{props}[\oarg{clist}]
-		\prop{radius}[3.5cm]{maximal diagram radius}
-		\prop{labels-radius}[3.5cm]{radius to put dimension labels}
-		\prop{units}[5]{number of scale units}
-		\prop{*}{all other options are passed to \env{tikzpicture}}
-	\end{props}
+\Describe{Option}{radius}{:dim}[3.5cm]
+Maximal diagram radius
 
-	A \env{kiviatchart} should begin with a \env{dims} followed by one or several \env{set}.
-\end{Environment}
+\Describe{Option}{label-radius}{:dim}[3.5cm]
+Radius to put dimension labels on
 
-\subsection{Dimensions}
+\Describe{Option}{units}{:int}[5]
+Set the scale of units from 0 to the given number
 
-\begin{Environment}{dims}[\oarg{clist}][\cs{value}\oarg{clist}\marg{label}\\\indent...]
-	\oarg{clist} is a list of the following options
+\Describe{Option}{*}{:keyval}
+All other options are passed to \env{tikzpicture}
 
-	\begin{props}[\oarg{clist}]
-		\prop{dim-options}[\{opacity=0.8\}]{TikZ{} options for drawing dimensions axis}
-		\prop{unit-options}[\{opacity=0.3\}]{TikZ{} options for drawing unit polygones}
-		\prop{label-options}[\{opacity=0.5, below\}]{TikZ{} options drawing for unit labels}
-		\prop{label-cs}[identity]{name of the cs used to format labels}
-		\prop{unit-cs}[tinyt]{name of the cs used to format labels}
-	\end{props}
+A \env{kiviatchart} should begin with a \env{dims}, followed by one or several \env{set}.
 
-	\begin{macro}{tinyt}
-		Macro used to format unit labels
-		\begin{minted}{latex}
-\cs_new:Npn \tinytt #1 {\tiny\texttt{#1}}
-		\end{minted}
-	\end{macro}
+\subsubsection{Dimensions}
 
-	\begin{macro}{value}
-		Inside \env{dims}, \cs{value}\oarg{clist}\marg{label} is used to add a dimension
-		to the kiviat chart
-	\end{macro}
-\end{Environment}
+\DescribeEnv{dims}
+Environment that hold the definition of all dimensions. Accepts an optional argument \oarg{clist} which
+is comma separated list of keywords and values :
 
-\subsection{Sets}
+\Describe{Option}{dim-options}{:prop}[\{opacity=0.8\}]
+\TikZ options for drawing dimensions axis with
 
-\begin{Environment}{set}[\oarg{clist}][\cs{value}\marg{int}\\\indent...]
-	\env{set} is used to add a new set to the kiviat chart. \oarg{clist} is a list of the
-	following options :
+\Describe{Option}{unit-options}{:prop}[\{opacity=0.3\}]
+\TikZ options for drawing unit polygons with
 
-	\begin{props}[\oarg{clist}]
-		\prop{dot-options}[\{fill, circle, inner~sep=1pt\}]{options for polygone node}
-		\prop{*}[\{color=black, line~width=1.5pt, opacity=1, fill~opacity=0.3,
-		fill=gray\}]{all other options are passed to \cs{draw} cs which draws the polygone}
-	\end{props}
+\Describe{Option}{label-options}{:prop}[\{opacity=0.5,below\}]
+\TikZ options drawing for unit labels
 
-	\begin{macro}{value}
-		Inside \env{set}, \cs{value}\marg{int} is used to add a value to the set. There must be the same number
-		of \cs{value} inside \env{set} and \env{dims}, and each \cs{value} corresponds to the dimension in \env{dims}
-		at the same index.
-	\end{macro}
-\end{Environment}
+\Describe{Option}{label-cs}{:str}[identity]
+Name of the cs used to format labels
+
+\Describe{Option}{unit-cs}{:str}[tinytt]
+Name of the cs used to format unit scale
+
+\DescribeMacro{tinytt}
+Macro used to format unit labels
+
+\begin{verbatim}
+\cs_new:Npn \tinytt #1 {\texttt{\tiny #1}}
+\end{verbatim}
+
+\DescribeMacro{value}
+\cs{value}\oarg{clist}\marg{label} is used to add a dimension to the kiviat chart. \oarg{clist} is
+passed to \TikZ to draw the nodes containing the labels.
+
+\subsubsection{Set}
+
+\DescribeEnv{set}
+\env{set} is used to add a new set to the kiviat chart. Accepts an optional argument \oarg{clist} which
+is comma separated list of keywords and values :
+
+\Describe{Option}{dot-options}{:prop}[\{fill,circle,inner~sep=1pt\}]
+Options for polygon node
+
+\Describe{Option}{*}{:keyval}[color=black,line~width=1.5pt,opacity=1,fill~opacity=0.3,fill=gray]
+All other options are passed to \cs{draw} cs which draws the polygon
+
+\DescribeMacro{value}
+\cs{value}\marg{int} is used to add a value to the set.
+
+There must be the same number of \cs{value} inside \env{set} and \env{dims}, and each \cs{value}
+corresponds to the dimension in \env{dims} at the same index.
 
 \subsection{Examples}
 
 \subsubsection{Simple}
 
-Use \texttt{label-cs} to call a \cs{textinv} to format the labels.
+Use \key{label-cs} to call \cs{textinv} to format the labels.
 
-\begin{macro}{textinv}
-\begin{minted}{latex}
-\NewDocumentCommand\textinv{m}{\colorbox{black}{\textcolor{white}{#1}}}
-\end{minted}
-\end{macro}
+\DescribeMacro{textinv}
+Macro used to format labels
 
-\begin{minted}[linenos,fontsize=\footnotesize]{latex}
+\begin{verbatim}
+% put a white text on a black background
+\NewDocumentCommand\textinv{m}{%
+  \colorbox{black}{\textcolor{white}{#1}}}
+\end{verbatim}
+
+\begin{verbatim}
+% the scale option is passed to tikzpicture
 \begin{kiviatchart}[scale=0.75]
+  % we define all the dimensions of the charts, and specify the placement
+  % of labels relatively to the nodes
   \begin{dims}[label-cs=textinv]
     \value[above]{Dim 1}
     \value[above]{Dim 2}
@@ -170,6 +158,8 @@ Use \texttt{label-cs} to call a \cs{textinv} to format the labels.
     \value[right]{Dim 4}
     \value[right]{Dim 5}
   \end{dims}
+  % Then we can add one or several sets. Each value correspond to
+  % the dimension at the same index in dims environment
   \begin{set}
     \value{4}
     \value{3}
@@ -178,7 +168,7 @@ Use \texttt{label-cs} to call a \cs{textinv} to format the labels.
     \value{3}
   \end{set}
 \end{kiviatchart}
-\end{minted}
+\end{verbatim}
 
 \begin{kiviatchart}[scale=0.75]
   \begin{dims}[label-cs=textinv]
@@ -199,9 +189,45 @@ Use \texttt{label-cs} to call a \cs{textinv} to format the labels.
 
 \subsubsection{Multi-set}
 
-Each set set its own color and point shape.
+Each set sets its own color and point shape.
 
-\begin{minted}[linenos,fontsize=\footnotesize]{latex}
+\begin{verbatim}
+% the scale option is passed to tikzpicture
+\begin{kiviatchart}[scale=0.75]
+  \begin{dims}
+    \value[above]{Dim 1}
+    \value[above]{Dim 2}
+    \value[left]{Dim 3}
+    \value[right]{Dim 4}
+    \value[right]{Dim 5}
+  \end{dims}
+  % fill this set in red with rectangle dots
+  \begin{set}[fill=red,dot-options={fill,rectangle,inner sep=2pt}]
+    \value{4}
+    \value{3}
+    \value{4}
+    \value{5}
+    \value{2}
+  \end{set}
+  % fill this set in green with diamond dots
+  \begin{set}[fill=green,dot-options={fill,diamond,inner sep=2pt}]
+    \value{2}
+    \value{4}
+    \value{3}
+    \value{4}
+    \value{5}
+  \end{set}
+  % fill this set in blue with semicircle dots
+  \begin{set}[fill=blue,dot-options={fill,semicircle,inner sep=2pt}]
+    \value{5}
+    \value{2}
+    \value{4}
+    \value{3}
+    \value{4}
+  \end{set}
+\end{kiviatchart}
+\end{verbatim}
+
 \begin{kiviatchart}[scale=0.75]
   \begin{dims}
     \value[above]{Dim 1}
@@ -232,88 +258,72 @@ Each set set its own color and point shape.
     \value{4}
   \end{set}
 \end{kiviatchart}
-\end{minted}
 
-\begin{kiviatchart}[scale=0.75]
-	\begin{dims}
-		\value[above]{Dim 1}
-		\value[above]{Dim 2}
-		\value[left]{Dim 3}
-		\value[right]{Dim 4}
-		\value[right]{Dim 5}
-	\end{dims}
-	\begin{set}[fill=red,dot-options={fill,rectangle,inner sep=2pt}]
-		\value{4}
-		\value{3}
-		\value{4}
-		\value{5}
-		\value{2}
-	\end{set}
-	\begin{set}[fill=green,dot-options={fill,diamond,inner sep=2pt}]
-		\value{2}
-		\value{4}
-		\value{3}
-		\value{4}
-		\value{5}
-	\end{set}
-	\begin{set}[fill=blue,dot-options={fill,semicircle,inner sep=2pt}]
-		\value{5}
-		\value{2}
-		\value{4}
-		\value{3}
-		\value{4}
-	\end{set}
-\end{kiviatchart}
-
-\subsection{Todo}
+\subsection{To do}
 
 At the moment the environments are not user friendly. We could provide basic sanity checks,
-with error messages when they failed.
+with error messages when theses rules are violated :
 
 \begin{itemize}
-	\item one and only one \env{dims} declared before any \env{set}
-	\item \env{set} has the same number of \cs{value} than \env{dims}
-	\item \cs{value} in \env{set} is between 0 and \texttt{units}
+  \item one and only one \env{dims} declared before any \env{set}
+  \item all \env{set} have the same number of \cs{value} than the \env{dims}
+  \item \cs{value} in \env{set} is between 0 and \key{units}
 \end{itemize}
 
-\section{ball chart}
+\section{Ball chart}
 
-\subsection{Definition}
+\subsection{Usage}
 
-\begin{Environment}{ballchart}[\oarg{clist}]
-	Environment that hold a ball chart. \oarg{clist} is a list of the following keyval
+\DescribeEnv{ballchart}
+Environment that hold a ball chart. Accepts an optional argument \oarg{clist} which
+is comma separated list of keywords and values :
 
-	\begin{props}[\oarg{clist}]
-		\prop{n}[]{the number of circles (\textbf{required})}
-		\prop{v-sep}[0.1]{vertical separator}
-		\prop{h-sep}[0.5]{horizontal separator (circle)}
-		\prop{radius}[0.25]{radius}
-		\prop{gap}[0.05]{gap between circle}
-		\prop{label-cs}[identity]{cs name to format labels}
-		\prop{fill-options}[\{fill=black\}]{options to fill balls with}
-		\prop{draw-options}[\{draw=black!30\}]{options to draw balls with}
-		\prop{label-options}[\{left\}]{options for dimensions axis}
-		\prop{*}{all other options are passed to \env{tikzpicture}}
-	\end{props}
+\Describe{Option}{n}{:int}
+The number of circles (\textbf{required})
 
-	\begin{macro}{value}
-		Inside \env{ballchart}, \cs{value}\marg{label}\marg{percent} is used to add a new bar.
-	\end{macro}
+\Describe{Option}{v-sep}{:fp}[0.1]
+Vertical separator in \emph{cm}
 
-\end{Environment}
+\Describe{Option}{h-sep}{:fp}[0.5]
+Horizontal separator (circle) in \emph{cm}
+
+\Describe{Option}{radius}{:fp}[0.25]
+Radius of the circles in \emph{cm}
+
+\Describe{Option}{gap}{:fp}[0.05]
+Gap between circle in \emph{cm}
+
+\Describe{Option}{label-cs}{:str}[identity]
+Macro name to format labels
+
+\Describe{Option}{fill-options}{:prop}[\{fill=black\}]
+\TikZ options to fill balls with
+
+\Describe{Option}{draw-options}{:prop}[\{draw=black!30\}]
+\TikZ options to draw balls with
+
+\Describe{Option}{label-options}{:prop}[\{left\}]
+\TikZ options for dimensions axis
+
+\Describe{Option}{*}{:keyval}
+All other options are passed to \env{tikzpicture}
+
+\DescribeMacro{value}
+\cs{value}\marg{label}\marg{percent} is used to add a new bar.
 
 \subsection{Examples}
 
 \subsubsection{Simple}
 
-\begin{minted}[linenos,fontsize=\footnotesize]{latex}
+\begin{verbatim}
+% draw 5 circles bar hiding the circles
 \begin{ballchart}[n=5, draw-options={draw=none}]
   \value{Dim 1}{95}
   \value{Dim 2}{80}
   \value{Dim 3}{80}
   \value{Dim 4}{20}
 \end{ballchart}
-\end{minted}
+\end{verbatim}
 
 \begin{ballchart}[n=5, draw-options={draw=none}]
   \value{Dim 1}{95}
@@ -322,55 +332,66 @@ with error messages when they failed.
   \value{Dim 4}{20}
 \end{ballchart}
 
-\subsubsection{Caped}
+\subsubsection{Delimited}
 
 Format labels, show circles, change color, add more circles.
 
-\begin{minted}[linenos,fontsize=\footnotesize]{latex}
-\begin{ballchart}[n=5, draw-options={draw=black,dotted}]
+\begin{verbatim}
+% format the labels, fill in red and shows circles
+\begin{ballchart}[n=6, label-cs=textinv, v-sep=0.2, fill-options={fill=red!50}, draw-options={draw=black}]
   \value{Dim 1}{95}
   \value{Dim 2}{80}
   \value{Dim 3}{80}
   \value{Dim 4}{20}
 \end{ballchart}
-\end{minted}
+\end{verbatim}
 
-\begin{ballchart}[n=6, label-cs=textinv, v-sep=0.2, fill-options={fill=red!50}, draw-options={draw=black,dotted}]
+\begin{ballchart}[n=6, label-cs=textinv, v-sep=0.2, fill-options={fill=red!50}, draw-options={draw=black}]
   \value{Dim 1}{95}
   \value{Dim 2}{80}
   \value{Dim 3}{80}
   \value{Dim 4}{20}
 \end{ballchart}
 
-\section{bar chart}
+\section{Bar chart}
 
-\subsection{Definition}
+\subsection{Usage}
 
-\begin{Environment}{barchart}[\oarg{clist}]
-	Environment that hold a bar chart. \oarg{clist} is a list of the following keyval
+\DescribeEnv{barchart}
+Environment that hold a bar chart. Accepts an optional argument \oarg{clist} which
+is comma separated list of keywords and values :
 
-	\begin{props}[\oarg{clist}]
-		\prop{width}{maximum width (\textbf{required})}
-		\prop{height}[0.35]{bar height}
-		\prop{gap}[0.25]{}
-		\prop{fill-options}[\{fill=black\}]{TikZ{} option to fill the bar with}
-		\prop{draw-options}[\{draw=black!20\}]{TikZ{} option to draw the bar with}
-		\prop{label-cs}[identity]{cs name to format labels}
-		\prop{*}{all other options are passed to \env{tikzpicture}}
-	\end{props}
+\Describe{Option}{width}{:fp}
+Maximum width (\textbf{required}) in \emph{cm}
 
-	\begin{macro}{value}
-		Inside \env{barchart}, \cs{value}\marg{label}\marg{percent} is used to add a new bar.
-	\end{macro}
+\Describe{Option}{height}{:fp}[0.35]
+Bar height in \emph{cm}
 
-\end{Environment}
+\Describe{Option}{gap}{:fp}[0.25]
+Gap in \emph{cm}
+
+\Describe{Option}{fill-options}{:prop}[\{fill=black\}]
+\TikZ options to fill the bar with
+
+\Describe{Option}{draw-options}{:prop}[\{draw=black!20\}]
+\TikZ options to draw the bar with
+
+\Describe{Option}{label-cs}{:prop}[identity]
+Macro name to format labels
+
+\Describe{Option}{*}{:keyval}
+All other options are passed to \env{tikzpicture}
+
+\DescribeMacro{value}
+\cs{value}\marg{label}\marg{percent} is used to add a new bar.
 
 \subsection{Examples}
 
 \subsubsection{Simple}
 
-\begin{minted}[linenos,fontsize=\footnotesize]{latex}
-\begin{barchart}[width=3, draw-options={draw=none}]
+\begin{verbatim}
+% hide borders
+\begin{barchart}[draw-options={draw=none}]
   \value{Dim 1}{60}
   \value{Dim 2}{100}
   \value{Dim 3}{70}
@@ -378,7 +399,7 @@ Format labels, show circles, change color, add more circles.
   \value{Dim 5}{40}
   \value{Dim 6}{60}
 \end{barchart}
-\end{minted}
+\end{verbatim}
 
 \begin{barchart}[width=3, draw-options={draw=none}]
   \value{Dim 1}{60}
@@ -389,11 +410,12 @@ Format labels, show circles, change color, add more circles.
   \value{Dim 6}{60}
 \end{barchart}
 
-\subsubsection{Caped}
+\subsubsection{Delimited}
 
 Change color, show as a gauge.
 
-\begin{minted}[linenos,fontsize=\footnotesize]{latex}
+\begin{verbatim}
+% draw 3cm wide bars, format labels, fill in red and show borders 
 \begin{barchart}[width=3, label-cs=textinv, fill-options={fill=red!50}, draw-options={draw=red!50}]
   \value{Dim 1}{60}
   \value{Dim 2}{100}
@@ -402,7 +424,7 @@ Change color, show as a gauge.
   \value{Dim 5}{40}
   \value{Dim 6}{60}
 \end{barchart}
-\end{minted}
+\end{verbatim}
 
 \begin{barchart}[width=3, label-cs=textinv, fill-options={fill=red!50}, draw-options={draw=red!50}]
   \value{Dim 1}{60}
@@ -413,56 +435,64 @@ Change color, show as a gauge.
   \value{Dim 6}{60}
 \end{barchart}
 
-\section{bubble chart}
+\section{Bubble chart}
 
-\subsection{Definition}
+\subsection{Usage}
 
-\begin{Environment}{bubblechart}[\oarg{clist}]
-	Environment that hold a bubble chart. \oarg{clist} is a list of the following keyval
+\DescribeEnv{bubblechart}
+Environment that hold a bubble chart. Accepts an optional argument \oarg{clist} which
+is comma separated list of keywords and values :
 
-	\begin{props}[\oarg{clist}]
-		\prop{radius}[1]{max radius}
-		\prop{gap}[0.3]{gap between bubbles}
-		\prop{fill-options}[\{fill=black\}]{TikZ{} options to fill bubble with}
-		\prop{draw-options}[\{draw=black!30\}]{TikZ{} options to draw bubble with}
-		\prop{label-cs}[identity]{cs name to format labels}
-		\prop{*}{all other options are passed to \env{tikzpicture}}
-	\end{props}
+\Describe{Option}{radius}{:fp}[1]
+Max radius in \emph{cm}
 
-	\begin{macro}{value}
-		Inside \env{bubblechart}, \cs{value}\marg{label}\marg{percent} is used to add
-		a new bubble.
-	\end{macro}
+\Describe{Option}{gap}{:fp}[0.3]
+Gap between bubbles in \emph{cm}
 
-\end{Environment}
+\Describe{Option}{fill-options}{:prop}[\{fill=black\}]
+\TikZ options to fill bubble with
+
+\Describe{Option}{draw-options}{:prop}[\{draw=black!30\}]
+\TikZ options to draw bubble with
+
+\Describe{Option}{label-cs}{:str}[identity]
+Macro name to format labels
+
+\Describe{Option}{*}{:keyval}
+All other options are passed to \env{tikzpicture}
+
+\DescribeMacro{value}
+\cs{value}\marg{label}\marg{percent} is used to add a new bubble.
 
 \subsection{Examples}
 
 \subsubsection{Simple}
 
-\begin{minted}[fontsize=\footnotesize]{latex}
+\begin{verbatim}
+% hide borders
 \begin{bubblechart}[draw-options={draw=none}]
-	\value{Dim 1}{80}
-	\value{Dim 2}{90}
-	\value{Dim 3}{50}
-	\value{Dim 4}{50}
-	\value{Dim 5}{30}
+  \value{Dim 1}{80}
+  \value{Dim 2}{90}
+  \value{Dim 3}{50}
+  \value{Dim 4}{50}
+  \value{Dim 5}{30}
 \end{bubblechart}
-\end{minted}
+\end{verbatim}
 
 \begin{bubblechart}[draw-options={draw=none}]
-	\value{Dim 1}{80}
-	\value{Dim 2}{90}
-	\value{Dim 3}{50}
-	\value{Dim 4}{50}
-	\value{Dim 5}{30}
+  \value{Dim 1}{80}
+  \value{Dim 2}{90}
+  \value{Dim 3}{50}
+  \value{Dim 4}{50}
+  \value{Dim 5}{30}
 \end{bubblechart}
 
-\subsubsection{Caped}
+\subsubsection{Delimited}
 
 Format labels, change colors, show absolute limit (100\%)
 
-\begin{minted}[fontsize=\footnotesize]{latex}
+\begin{verbatim}
+% format labels, fill in red, and show maximum dashed
 \begin{bubblechart}[label-cs=textinv, fill-options={fill=red!50}, draw-options={draw=red!50,dashed}]
   \value{Dim 1}{80}
   \value{Dim 2}{90}
@@ -470,17 +500,29 @@ Format labels, change colors, show absolute limit (100\%)
   \value{Dim 4}{50}
   \value{Dim 5}{30}
 \end{bubblechart}
-\end{minted}
+\end{verbatim}
 
-\begin{bubblechart}[label-cs=textinv, fill-options={fill=red!50},draw-options={draw=red!50,dashed}]
-	\value{Dim 1}{80}
-	\value{Dim 2}{90}
-	\value{Dim 3}{50}
-	\value{Dim 4}{50}
-	\value{Dim 5}{30}
+\begin{bubblechart}[label-cs=textinv, fill-options={fill=red!50}, draw-options={draw=red!50,dashed}]
+  \value{Dim 1}{80}
+  \value{Dim 2}{90}
+  \value{Dim 3}{50}
+  \value{Dim 4}{50}
+  \value{Dim 5}{30}
 \end{bubblechart}
 
-\PrintChanges
+\newpage
 \PrintIndex
+
+\section{Changes}
+
+\begin{History}
+
+\Version{0.2.0}{2022/07/04}
+\item define a document class borrowed from \href{https://github.com/schlcht/microtype}{\pkg{microtype}}
+
+\Version{0.1.0}{2022/07/01}
+\item Initial version
+
+\end{History}
 
 \end{document}
