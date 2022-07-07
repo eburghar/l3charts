@@ -5,17 +5,19 @@
 \hypersetup{
   keeppdfinfo,
   pdftitle={The l3charts package},
-  pdfauthor={Éric BURGHARD<eric@itsufficient.me>},
+  pdfauthor={Éric BURGHARD},
+  pdfcontactemail={ctan@itsufficient.me},
+  pdfcontacturl={https://itsufficient.me},
   pdfsubject={Customizable charts made with TikZ and LaTeX3},
   pdfkeywords={LaTeX3, TikZ},
-    pdfcopyright={\textcopyright\ 2022 Éric BURGHARD\textLF
-      This work may be distributed and/or modified under the conditions
-      of the LaTeX Project Public License, either version 1.3c of this
-      license or (at your option) any later version.\textLF
-      This work has the LPPL maintenance status `maintained'.},
-    pdflicenseurl={https://github.com/eburghar/l3charts},
-    pdflang={en-GB}
-  }
+  pdfcopyright={\textcopyright\ 2022 Éric BURGHARD\textLF
+    This work may be distributed and/or modified under the conditions
+    of the LaTeX Project Public License, either version 1.3c of this
+    license or (at your option) any later version.\textLF
+    This work has the LPPL maintenance status `maintained'.},
+  pdflicenseurl={https://www.latex-project.org/lppl/},
+  pdflang={en-GB}
+}
 
 % format label white on black
 \NewDocumentCommand\textinv{m}{\colorbox{black}{\textcolor{white}{#1}}}
@@ -27,23 +29,21 @@
 \title{The \texttt{l3charts} package}
 \author{Éric BURGHARD}
 \date{2022/07/01}
-\changes{0.1.0}{2022/07/01}{initial version}
-\def\githuburl{https://github.com/eburghar/l3charts}
+\def\githuburl{https://git.itsufficient.me/latex/l3charts}
 
 \begin{document}
-\newgeometry{total={160mm,257mm},left=25mm,top=30mm}
-
-\maketitle\thispagestyle{empty}
+\newgeometry{scale={0.8,0.9},top=4cm}% title page is centered
+\maketitle
+\thispagestyle{empty}
 \begin{abstract}
-  This package defines a few simple \TikZ charts that can be drawn using \LaTeX{}
+  This package defines a few simple \TikZ{} charts that can be drawn using \LaTeX{}
   environments. This has mainly been developed as an experimentation of \texttt{expl3}
   for checking what \LaTeX3 really brought to facilitate package development (expansion
   control, clist, seq, prop, ...).
 \end{abstract}
 \tableofcontents
 \newpage
-
-\newgeometry{total={150mm,257mm},left=45mm,top=20mm}
+\restoregeometry% restore default geometry
 
 \section{About this documentation}
 
@@ -53,7 +53,7 @@ is just an ugly hack that turns the code and the documentation unmaintainable, a
 the component of \LaTeX{} which aged the most.
 
 So I chose to write the documentation separately and borrowed much of the style from the
-\href{https://github.com/schlcht/microtype}{\pkg{microtype}} package which by the way, pushed
+\href{https://github.com/schlcht/microtype}{\pkg{microtype}} package which by the way, pushes
 the \pkg{docstrip} mastery to a \emph{black magic} level.
 
 \section{Kiviat chart}
@@ -88,13 +88,13 @@ Environment that hold the definition of all dimensions. Accepts an optional argu
 is comma separated list of keywords and values :
 
 \Describe{Option}{dim-options}{:prop}[\{opacity=0.8\}]
-\TikZ options for drawing dimensions axis with
+\TikZ{} options for drawing dimensions axis with
 
 \Describe{Option}{unit-options}{:prop}[\{opacity=0.3\}]
-\TikZ options for drawing unit polygons with
+\TikZ{} options for drawing unit polygons with
 
 \Describe{Option}{label-options}{:prop}[\{opacity=0.5,below\}]
-\TikZ options drawing for unit labels
+\TikZ{} options drawing for unit labels
 
 \Describe{Option}{label-cs}{:str}[identity]
 Name of the cs used to format labels
@@ -105,13 +105,13 @@ Name of the cs used to format unit scale
 \DescribeMacro{tinytt}
 Macro used to format unit labels
 
-\begin{verbatim}
+\begin{minted}{latex}
 \cs_new:Npn \tinytt #1 {\texttt{\tiny #1}}
-\end{verbatim}
+\end{minted}
 
 \DescribeMacro{value}
 \cs{value}\oarg{clist}\marg{label} is used to add a dimension to the kiviat chart. \oarg{clist} is
-passed to \TikZ to draw the nodes containing the labels.
+passed to \TikZ{} to draw the nodes corresponding to the labels.
 
 \subsubsection{Set}
 
@@ -140,26 +140,28 @@ Use \key{label-cs} to call \cs{textinv} to format the labels.
 \DescribeMacro{textinv}
 Macro used to format labels
 
-\begin{verbatim}
-% put a white text on a black background
-\NewDocumentCommand\textinv{m}{%
-  \colorbox{black}{\textcolor{white}{#1}}}
-\end{verbatim}
+\begin{minted}{latex}
+%  white text on black background
+\NewDocumentCommand\textinv{m}{\colorbox{black}{\textcolor{white}{#1}}}
+\end{minted}
 
-\begin{verbatim}
-% the scale option is passed to tikzpicture
+\begin{example}
+% scale is passed to tikzpicture
 \begin{kiviatchart}[scale=0.75]
-  % we define all the dimensions of the charts, and specify the placement
-  % of labels relatively to the nodes
+  % Define all the dimensions
   \begin{dims}[label-cs=textinv]
+    % Specify placement of each
+    % labels
     \value[above]{Dim 1}
     \value[above]{Dim 2}
     \value[left]{Dim 3}
     \value[right]{Dim 4}
     \value[right]{Dim 5}
   \end{dims}
-  % Then we can add one or several sets. Each value correspond to
-  % the dimension at the same index in dims environment
+  % Add one or several sets.
+  % Each value corresponds to
+  % the dimension at the same
+  % index in dims
   \begin{set}
     \value{4}
     \value{3}
@@ -168,31 +170,12 @@ Macro used to format labels
     \value{3}
   \end{set}
 \end{kiviatchart}
-\end{verbatim}
-
-\begin{kiviatchart}[scale=0.75]
-  \begin{dims}[label-cs=textinv]
-    \value[above]{Dim 1}
-    \value[above]{Dim 2}
-    \value[left]{Dim 3}
-    \value[right]{Dim 4}
-    \value[right]{Dim 5}
-  \end{dims}
-  \begin{set}
-    \value{4}
-    \value{3}
-    \value{4}
-    \value{5}
-    \value{3}
-  \end{set}
-\end{kiviatchart}
+\end{example}
 
 \subsubsection{Multi-set}
 
-Each set sets its own color and point shape.
-
-\begin{verbatim}
-% the scale option is passed to tikzpicture
+\begin{example}
+% scale is passed to tikzpicture
 \begin{kiviatchart}[scale=0.75]
   \begin{dims}
     \value[above]{Dim 1}
@@ -201,56 +184,42 @@ Each set sets its own color and point shape.
     \value[right]{Dim 4}
     \value[right]{Dim 5}
   \end{dims}
-  % fill this set in red with rectangle dots
-  \begin{set}[fill=red,dot-options={fill,rectangle,inner sep=2pt}]
+  % Fill this set in red
+  % with rectangle dots
+  \begin{set}[
+      fill=red,
+      dot-options={
+        fill,rectangle,
+        inner sep=2pt
+      }]
     \value{4}
     \value{3}
     \value{4}
     \value{5}
     \value{2}
   \end{set}
-  % fill this set in green with diamond dots
-  \begin{set}[fill=green,dot-options={fill,diamond,inner sep=2pt}]
+  % Fill this set in green
+  % with diamond dots
+  \begin{set}[
+      fill=green,
+      dot-options={
+          fill,diamond,
+          inner sep=2pt
+      }]
     \value{2}
     \value{4}
     \value{3}
     \value{4}
     \value{5}
   \end{set}
-  % fill this set in blue with semicircle dots
-  \begin{set}[fill=blue,dot-options={fill,semicircle,inner sep=2pt}]
-    \value{5}
-    \value{2}
-    \value{4}
-    \value{3}
-    \value{4}
-  \end{set}
-\end{kiviatchart}
-\end{verbatim}
-
-\begin{kiviatchart}[scale=0.75]
-  \begin{dims}
-    \value[above]{Dim 1}
-    \value[above]{Dim 2}
-    \value[left]{Dim 3}
-    \value[right]{Dim 4}
-    \value[right]{Dim 5}
-  \end{dims}
-  \begin{set}[fill=red,dot-options={fill,rectangle,inner sep=2pt}]
-    \value{4}
-    \value{3}
-    \value{4}
-    \value{5}
-    \value{2}
-  \end{set}
-  \begin{set}[fill=green,dot-options={fill,diamond,inner sep=2pt}]
-    \value{2}
-    \value{4}
-    \value{3}
-    \value{4}
-    \value{5}
-  \end{set}
-  \begin{set}[fill=blue,dot-options={fill,semicircle,inner sep=2pt}]
+  % Fill this set in blue
+  % with semicircle dots
+  \begin{set}[
+      fill=blue,
+      dot-options={
+        fill,semicircle,
+        inner sep=2pt
+      }]
     \value{5}
     \value{2}
     \value{4}
@@ -258,6 +227,7 @@ Each set sets its own color and point shape.
     \value{4}
   \end{set}
 \end{kiviatchart}
+\end{example}
 
 \subsection{To do}
 
@@ -297,13 +267,13 @@ Gap between circle in \emph{cm}
 Macro name to format labels
 
 \Describe{Option}{fill-options}{:prop}[\{fill=black\}]
-\TikZ options to fill balls with
+\TikZ{} options to fill balls with
 
 \Describe{Option}{draw-options}{:prop}[\{draw=black!30\}]
-\TikZ options to draw balls with
+\TikZ{} options to draw balls with
 
 \Describe{Option}{label-options}{:prop}[\{left\}]
-\TikZ options for dimensions axis
+\TikZ{} options for dimensions axis
 
 \Describe{Option}{*}{:keyval}
 All other options are passed to \env{tikzpicture}
@@ -315,43 +285,35 @@ All other options are passed to \env{tikzpicture}
 
 \subsubsection{Simple}
 
-\begin{verbatim}
-% draw 5 circles bar hiding the circles
-\begin{ballchart}[n=5, draw-options={draw=none}]
+\begin{example}
+% 5 circles bar, hide the circles
+\begin{ballchart}[
+    n=5,
+    draw-options={draw=none}]
   \value{Dim 1}{95}
   \value{Dim 2}{80}
   \value{Dim 3}{80}
   \value{Dim 4}{20}
 \end{ballchart}
-\end{verbatim}
-
-\begin{ballchart}[n=5, draw-options={draw=none}]
-  \value{Dim 1}{95}
-  \value{Dim 2}{80}
-  \value{Dim 3}{80}
-  \value{Dim 4}{20}
-\end{ballchart}
+\end{example}
 
 \subsubsection{Delimited}
 
-Format labels, show circles, change color, add more circles.
-
-\begin{verbatim}
-% format the labels, fill in red and shows circles
-\begin{ballchart}[n=6, label-cs=textinv, v-sep=0.2, fill-options={fill=red!50}, draw-options={draw=black}]
+\begin{example}
+% 6 circles bar, format the labels,
+% fill in red, and shows circles
+\begin{ballchart}[
+    n=6,
+    label-cs=textinv,
+    v-sep=0.2,
+    fill-options={fill=red!50},
+    draw-options={draw=black}]
   \value{Dim 1}{95}
   \value{Dim 2}{80}
   \value{Dim 3}{80}
   \value{Dim 4}{20}
 \end{ballchart}
-\end{verbatim}
-
-\begin{ballchart}[n=6, label-cs=textinv, v-sep=0.2, fill-options={fill=red!50}, draw-options={draw=black}]
-  \value{Dim 1}{95}
-  \value{Dim 2}{80}
-  \value{Dim 3}{80}
-  \value{Dim 4}{20}
-\end{ballchart}
+\end{example}
 
 \section{Bar chart}
 
@@ -371,10 +333,10 @@ Bar height in \emph{cm}
 Gap in \emph{cm}
 
 \Describe{Option}{fill-options}{:prop}[\{fill=black\}]
-\TikZ options to fill the bar with
+\TikZ{} options to fill the bar with
 
 \Describe{Option}{draw-options}{:prop}[\{draw=black!20\}]
-\TikZ options to draw the bar with
+\TikZ{} options to draw the bar with
 
 \Describe{Option}{label-cs}{:prop}[identity]
 Macro name to format labels
@@ -389,9 +351,11 @@ All other options are passed to \env{tikzpicture}
 
 \subsubsection{Simple}
 
-\begin{verbatim}
+\begin{example}
 % hide borders
-\begin{barchart}[draw-options={draw=none}]
+\begin{barchart}[
+    width=3,
+    draw-options={draw=none}]
   \value{Dim 1}{60}
   \value{Dim 2}{100}
   \value{Dim 3}{70}
@@ -399,24 +363,18 @@ All other options are passed to \env{tikzpicture}
   \value{Dim 5}{40}
   \value{Dim 6}{60}
 \end{barchart}
-\end{verbatim}
-
-\begin{barchart}[width=3, draw-options={draw=none}]
-  \value{Dim 1}{60}
-  \value{Dim 2}{100}
-  \value{Dim 3}{70}
-  \value{Dim 4}{70}
-  \value{Dim 5}{40}
-  \value{Dim 6}{60}
-\end{barchart}
+\end{example}
 
 \subsubsection{Delimited}
 
-Change color, show as a gauge.
-
-\begin{verbatim}
-% draw 3cm wide bars, format labels, fill in red and show borders 
-\begin{barchart}[width=3, label-cs=textinv, fill-options={fill=red!50}, draw-options={draw=red!50}]
+\begin{example}
+% 3cm wide bars, format labels,
+% fill in red and show borders 
+\begin{barchart}[
+    width=3,
+    label-cs=textinv,
+    fill-options={fill=red!50},
+    draw-options={draw=red!50}]
   \value{Dim 1}{60}
   \value{Dim 2}{100}
   \value{Dim 3}{70}
@@ -424,16 +382,7 @@ Change color, show as a gauge.
   \value{Dim 5}{40}
   \value{Dim 6}{60}
 \end{barchart}
-\end{verbatim}
-
-\begin{barchart}[width=3, label-cs=textinv, fill-options={fill=red!50}, draw-options={draw=red!50}]
-  \value{Dim 1}{60}
-  \value{Dim 2}{100}
-  \value{Dim 3}{70}
-  \value{Dim 4}{70}
-  \value{Dim 5}{40}
-  \value{Dim 6}{60}
-\end{barchart}
+\end{example}
 
 \section{Bubble chart}
 
@@ -450,10 +399,10 @@ Max radius in \emph{cm}
 Gap between bubbles in \emph{cm}
 
 \Describe{Option}{fill-options}{:prop}[\{fill=black\}]
-\TikZ options to fill bubble with
+\TikZ{} options to fill bubble with
 
 \Describe{Option}{draw-options}{:prop}[\{draw=black!30\}]
-\TikZ options to draw bubble with
+\TikZ{} options to draw bubble with
 
 \Describe{Option}{label-cs}{:str}[identity]
 Macro name to format labels
@@ -468,49 +417,32 @@ All other options are passed to \env{tikzpicture}
 
 \subsubsection{Simple}
 
-\begin{verbatim}
+\begin{example}
 % hide borders
-\begin{bubblechart}[draw-options={draw=none}]
+\begin{bubblechart}[
+    draw-options={draw=none}]
   \value{Dim 1}{80}
   \value{Dim 2}{90}
   \value{Dim 3}{50}
-  \value{Dim 4}{50}
-  \value{Dim 5}{30}
 \end{bubblechart}
-\end{verbatim}
-
-\begin{bubblechart}[draw-options={draw=none}]
-  \value{Dim 1}{80}
-  \value{Dim 2}{90}
-  \value{Dim 3}{50}
-  \value{Dim 4}{50}
-  \value{Dim 5}{30}
-\end{bubblechart}
+\end{example}
 
 \subsubsection{Delimited}
 
-Format labels, change colors, show absolute limit (100\%)
-
-\begin{verbatim}
-% format labels, fill in red, and show maximum dashed
-\begin{bubblechart}[label-cs=textinv, fill-options={fill=red!50}, draw-options={draw=red!50,dashed}]
+\begin{example}
+% Format labels, fill in red,
+% and show maximum dashed
+\begin{bubblechart}[
+    label-cs=textinv,
+    fill-options={fill=red!50},
+    draw-options={draw=red!50,dashed}]
   \value{Dim 1}{80}
   \value{Dim 2}{90}
   \value{Dim 3}{50}
-  \value{Dim 4}{50}
-  \value{Dim 5}{30}
 \end{bubblechart}
-\end{verbatim}
+\end{example}
 
-\begin{bubblechart}[label-cs=textinv, fill-options={fill=red!50}, draw-options={draw=red!50,dashed}]
-  \value{Dim 1}{80}
-  \value{Dim 2}{90}
-  \value{Dim 3}{50}
-  \value{Dim 4}{50}
-  \value{Dim 5}{30}
-\end{bubblechart}
-
-\newpage
+% \newpage
 \PrintIndex
 
 \section{Changes}
