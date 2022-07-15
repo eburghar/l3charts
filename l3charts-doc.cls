@@ -10,7 +10,7 @@
 	\geometry{
 		paper=a4paper,
 		vmargin={2cm,2cm},
-		hmargin={4.5cm,1cm},
+		hmargin={4.7cm,1.5cm},
 		% showframe % Uncomment to show how the type block is set on the page
 	}
 

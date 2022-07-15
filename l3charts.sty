@@ -1,11 +1,11 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{l3charts}[2022/06/28 0.1.0 Customizable tikz charts using latex3]
+\ProvidesPackage{l3charts}[2022/07/15 0.3.0 Customizable tikz charts using latex3]
 
 \RequirePackage{expl3}
 \RequirePackage{xparse}
 \RequirePackage{tikz}
 
-\usetikzlibrary{shapes, shapes.misc, backgrounds, calc, fit}
+\usetikzlibrary{shapes, shapes.misc, backgrounds, calc, fit, positioning}
 
 \ExplSyntaxOn
 \makeatletter % to access latex2e variables
@@ -85,7 +85,7 @@
 		\seq_clear_new:N \l_labels_seq       % sequence to keep labels from \value cs
 		\seq_clear_new:N \l_labeloptions_seq % sequence to keep label options from \value cs
 	} {
-    	% now that we have all the dimensions we can draw the picture
+		% now that we have all the dimensions we can draw the picture
 		\tl_set:Nx \labels {\seq_use:Nn \l_labels_seq {,}} % , separated list of dimensions
 		\tl_set:Nx \D {\seq_count:N \l_labels_seq}         % number of dimensions
 		\tl_set:Nx \A {360/\D}                             % calculated angle between dimension axes
@@ -136,6 +136,7 @@
 		% set default options (exp_args to expand \c_space_tl)
 		\exp_args:Nnx \keys_set:nn {kiviatchart_set} {
     		dot-options             = {fill,circle,inner\c_space_tl sep=1pt},
+			% default options forwarded to tikzpicture
 			color                   = black,
 			line\c_space_tl width   = 1.5pt,
 			opacity                 = 1,
@@ -171,12 +172,12 @@
 	\end{tikzpicture}
 }
 
+% Environment to hold a ball chart
 \NewDocumentEnvironment {ballchart} {o} {
 	\prop_clear_new:N \l_tikz_prop % properties for tikzpicture
 	\clist_clear_new:N \l_tikz_clist % properties for tikzpicture as keyval string
 	\keys_define:nn {ballchart} {
 		n             .tl_set:N         = \l_n_tl,            % the number of circles
-		n             .value_required:n = true,
 		v-sep         .tl_set:N         = \l_vsep_tl,         % vertical separator
 		h-sep         .tl_set:N         = \l_hsep_tl,         % horizontal separator (circle)
 		radius        .tl_set:N         = \l_radius_tl,       % radius
@@ -190,6 +191,7 @@
 	}
 	% set default options
 	\keys_set:nn {ballchart} {
+		n             = 5,
 		v-sep         = 0.1,
 		h-sep         = 0.5,
 		radius        = 0.25,
@@ -227,21 +229,20 @@
 			path\c_space_tl picture={
 				\exp_last_unbraced:Ne \fill {[\l_filloptions_str]} (path\c_space_tl picture\c_space_tl bounding\c_space_tl box.south\c_space_tl west) rectangle
 					($(path\c_space_tl picture\c_space_tl bounding\c_space_tl box.north\c_space_tl west)!##1!(path \c_space_tl picture\c_space_tl bounding\c_space_tl box.north\c_space_tl east)$);
-    			}
+				}
 			}
 		}
 }{
 	\end{tikzpicture}
 }
 
-% % Environment to hold a new bar chart
+% % Environment to hold a bar chart
 \NewDocumentEnvironment {barchart} {o} {
 	\prop_clear_new:N \l_tikz_prop % properties for tikzpicture
 	\clist_clear_new:N \l_tikz_clist % properties for tikzpicture as keyval string
 	% keyval options for the environment
 	\keys_define:nn {barchart} {
 		width        .tl_set:N         = \l_width_tl,        % maximum bar width, in cm
-		width        .value_required:n = true,
 		height       .tl_set:N         = \l_height_tl,
 		gap          .tl_set:N         = \l_gap_tl,
 		fill-options .tl_set:N         = \l_filloptions_str, % options to fill bar with
@@ -252,6 +253,7 @@
 	}
 	% set default options
 	\keys_set:nn {barchart} {
+    	width        = 3,
 		height       = 0.35,
 		gap          = 0.25,
 		fill-options = {fill=black},
@@ -285,26 +287,31 @@
 	\end{tikzpicture}
 }
 
+% Environment to hold a bubble chart
 \NewDocumentEnvironment {bubblechart} {o} {
 	\prop_clear_new:N \l_tikz_prop % properties for tikzpicture
 	\clist_clear_new:N \l_tikz_clist % properties for tikzpicture as keyval string
 	% keyval options for the environment
 	\keys_define:nn {bubblechart} {
-    	radius       .tl_set:N  = \l_radius_tl,       % max radius
-    	gap          .tl_set:N  = \l_gap_tl,
-		fill-options .tl_set:N  = \l_filloptions_str, % color to fill bubble with
-		draw-options .tl_set:N  = \l_drawoptions_str, % color to draw bubble with
-		label-cs     .str_set:N = \l_labelcs_str,     % cs name to format labels
+    	radius       .tl_set:N   = \l_radius_tl,       % max radius
+    	gap          .tl_set:N   = \l_gap_tl,          % gap between bubbles
+		fill-options .tl_set:N   = \l_filloptions_str, % TikZ options to draw the background with
+		draw-options .tl_set:N   = \l_drawoptions_str, % TikZ options to draw the bubble with
+		label-cs     .str_set:N  = \l_labelcs_str,     % cs name to format labels with
+		label-pos    .str_set:N  = \l_labelpos_str,    % label position relative to bubble
+		vertical     .bool_set:N = \l_vertical_bool,   % stack bubbles vertically
 		% forward all other options to tikzpicture
 		unknown      .code:n   = {\prop_put:Nxx \l_tikz_prop {\l_keys_key_str} {##1}}
 	}
 	% set default options
 	\keys_set:nn {bubblechart} {
-    	radius       = 1,
+		radius       = 1,
 		gap          = 0.3,
-		fill-options = {fill=black},
-		draw-options = {draw=black!30},
-		label-cs     = identity
+		fill-options = {fill=none,draw=black!30},
+		draw-options = {fill=black,draw=none},
+		label-cs     = identity,
+		label-pos    = above,
+		vertical     = false
 	}
 	% override with given options if any
 	\IfValueT {#1} {\keys_set:nn {bubblechart} {#1}}
@@ -319,18 +326,100 @@
 	% #1: label
 	% #2: percent
     \DeclareDocumentCommand \value {mm} {
-        \tl_set:Nx \l_bubbleradius_tl {\fp_to_decimal:n {\l_radius_tl * ##2 / 100}}
-        \tl_set:Nx \l_x_tl {\fp_to_decimal:n {\l_count_int * (\l_radius_tl * 2 + \l_gap_tl)}}
-		\exp_last_unbraced:Ne \draw {[\l_drawoptions_str]} (\l_x_tl, 0) circle (\l_radius_tl); 
-		\exp_last_unbraced:Ne \fill {[\l_filloptions_str]} (\l_x_tl, 0) circle (\l_bubbleradius_tl);
-		\node [above] at (\l_x_tl, 1) {\use:c {\l_labelcs_str} {##1}};
+		\tl_set:Nx \l_bubbleradius_tl {\fp_to_decimal:n {\l_radius_tl * ##2 / 100}}
+		\bool_if:nTF {\l_vertical_bool} {
+			\tl_set:Nn \l_x_tl {0}
+			\tl_set:Nx \l_y_tl {-\fp_to_decimal:n {\l_count_int * (\l_radius_tl * 2 + \l_gap_tl)}}
+		}{
+			\tl_set:Nx \l_x_tl {\fp_to_decimal:n {\l_count_int * (\l_radius_tl * 2 + \l_gap_tl)}}
+			\tl_set:Nn \l_y_tl {0}
+		}
+		\exp_last_unbraced:Ne \draw {[\l_filloptions_str]} (\l_x_tl, \l_y_tl) circle (\l_radius_tl); 
+		\exp_last_unbraced:Ne \draw {[\l_drawoptions_str]} (\l_x_tl, \l_y_tl) circle (\l_bubbleradius_tl);
+		% phantom node at bubble center for positioning labels relatively with
+		\exp_last_unbraced:Ne \node {(bubble\int_use:N \l_count_int)} at (\l_x_tl,\l_y_tl) {};
+		\exp_last_unbraced:Ne \node {[\l_labelpos_str=of\c_space_tl bubble\int_use:N \l_count_int]} {\use:c {\l_labelcs_str} {##1}};
 		\int_incr:N \l_count_int
-    }
+	}
 
 	% start a picture (expand option before begin)
 	\exp_last_unbraced:Nno \begin {tikzpicture} {\l_tikz_str}
+}{
+	\end{tikzpicture}
+}
 
-} {
+% Environment to hold a radial chart
+\NewDocumentEnvironment {radialchart} {o} {
+	\prop_clear_new:N \l_tikz_prop % properties for tikzpicture
+	\clist_clear_new:N \l_tikz_clist % properties for tikzpicture as keyval string
+	% keyval options for the environment
+	\keys_define:nn {radialchart} {
+		radius       .tl_set:N   = \l_radius_tl,      % max radius
+    	gap          .tl_set:N   = \l_gap_tl,         % gap between radials
+		label-cs     .str_set:N  = \l_labelcs_str,    % cs name to format labels with
+		label-pos    .str_set:N  = \l_labelpos_str,   % label position relative to radial
+		value-cs     .str_set:N  = \l_valuecs_str,    % cs name to format values with
+		vertical     .bool_set:N = \l_vertical_bool,  % stack radials vertically
+		draw-options .tl_set:N   = \l_drawoptions_tl, % TikZ options to draw the radial with
+		fill-options .tl_set:N   = \l_filloptions_tl, % TikZ options to fill/draw the center of the radial with
+		% forward all other options to tikzpicture
+		unknown      .code:n   = {\prop_put:Nxx \l_tikz_prop {\l_keys_key_str} {##1}}
+	}
+	% set default options
+	\keys_set:nx {radialchart} {
+		radius                = 1,
+		gap                   = 0.4,
+		label-cs              = identity,
+		label-pos             = above,
+		value-cs              = identity,
+		vertical              = false,
+		draw-options          = black,
+		fill-options          = {fill=none,draw=black!10},
+		% default options forwarded to tikzpicture
+		line\c_space_tl width = 2mm,
+		line\c_space_tl cap   = round
+	}
+	% override with given options if any
+	\IfValueT {#1} {\keys_set:nn {radialchart} {#1}}
+	% turn the tikz prop into a keyval string
+	\prop_map_inline:Nn \l_tikz_prop {
+		\clist_put_right:Nn \l_tikz_clist {##1=##2}
+	}
+	\str_set:Nx \l_tikz_str {[\clist_use:Nn \l_tikz_clist {,}]}
+	\str_show:N \l_tikz_str
+
+	% Draw an arc from a center
+	% #1: TikZ options to draw the arc with
+	% #2: center (x,y)
+	% #3: initial angle
+	% #4: final angle
+	% #5: radius
+	\def\centerarc[##1](##2)(##3,##4,##5){
+		\draw[##1] ($(##2)+({##5*cos(##3)},{##5*sin(##3)})$) arc (##3\c_colon_str##4\c_colon_str##5);
+	}
+
+	\int_zero_new:N \l_count_int
+	% Command to add a radial
+	% #1: label
+	% #2: percent
+	\DeclareDocumentCommand \value {mm} {
+		\tl_set:Nx \l_tmpa_tl {\fp_to_decimal:n {90 - 360 * ##2 / 100}}
+		\bool_if:nTF {\l_vertical_bool} {
+			\tl_set:Nn \l_x_tl {0}
+			\tl_set:Nx \l_y_tl {\fp_to_decimal:n {-\l_count_int * (\l_radius_tl * 2 + \l_gap_tl)}}
+		}{
+			\tl_set:Nx \l_x_tl {\fp_to_decimal:n {\l_count_int * (\l_radius_tl * 2 + \l_gap_tl)}}
+			\tl_set:Nn \l_y_tl {0}
+		}
+		\exp_last_unbraced:Ne \draw {[\l_filloptions_tl]} (\l_x_tl,\l_y_tl) circle (\l_radius_tl);
+		\exp_last_unbraced:Ne \centerarc {[\l_drawoptions_tl]} (\l_x_tl,\l_y_tl) (90,\l_tmpa_tl,\l_radius_tl);
+		\exp_last_unbraced:Ne \node {(radial\int_use:N \l_count_int)} at (\l_x_tl,\l_y_tl) {\use:c {\l_valuecs_str} {##2\%}};
+		\exp_last_unbraced:Ne \node {[\l_labelpos_str=of\c_space_tl radial\int_use:N \l_count_int]} {\use:c {\l_labelcs_str} {##1}};
+		\int_incr:N \l_count_int
+	}
+	% start a picture (expand option before begin)
+	\exp_last_unbraced:Nno \begin {tikzpicture} {\l_tikz_str}
+}{
 	\end{tikzpicture}
 }
 

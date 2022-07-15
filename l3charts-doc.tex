@@ -21,6 +21,7 @@
 
 % format label white on black
 \NewDocumentCommand\textinv{m}{\colorbox{black}{\textcolor{white}{#1}}}
+\NewDocumentCommand\redbold{m}{\textcolor{red!50}{\textbf{#1}}}
 
 % Start document
 \RecordChanges
@@ -28,7 +29,7 @@
 
 \title{The \texttt{l3charts} package}
 \author{Éric BURGHARD}
-\date{2022/07/01}
+\date{2022/07/15}
 \def\githuburl{https://git.itsufficient.me/latex/l3charts}
 
 \begin{document}
@@ -248,8 +249,8 @@ with error messages when theses rules are violated :
 Environment that hold a ball chart. Accepts an optional argument \oarg{clist} which
 is comma separated list of keywords and values :
 
-\Describe{Option}{n}{:int}
-The number of circles (\textbf{required})
+\Describe{Option}{n}{:int}[5]
+The number of circles
 
 \Describe{Option}{v-sep}{:fp}[0.1]
 Vertical separator in \emph{cm}
@@ -288,7 +289,6 @@ All other options are passed to \env{tikzpicture}
 \begin{example}
 % 5 circles bar, hide the circles
 \begin{ballchart}[
-    n=5,
     draw-options={draw=none}]
   \value{Dim 1}{95}
   \value{Dim 2}{80}
@@ -323,8 +323,8 @@ All other options are passed to \env{tikzpicture}
 Environment that hold a bar chart. Accepts an optional argument \oarg{clist} which
 is comma separated list of keywords and values :
 
-\Describe{Option}{width}{:fp}
-Maximum width (\textbf{required}) in \emph{cm}
+\Describe{Option}{width}{:fp}[3]
+Maximum width in \emph{cm}
 
 \Describe{Option}{height}{:fp}[0.35]
 Bar height in \emph{cm}
@@ -354,7 +354,6 @@ All other options are passed to \env{tikzpicture}
 \begin{example}
 % hide borders
 \begin{barchart}[
-    width=3,
     draw-options={draw=none}]
   \value{Dim 1}{60}
   \value{Dim 2}{100}
@@ -398,14 +397,20 @@ Max radius in \emph{cm}
 \Describe{Option}{gap}{:fp}[0.3]
 Gap between bubbles in \emph{cm}
 
-\Describe{Option}{fill-options}{:prop}[\{fill=black\}]
-\TikZ{} options to fill bubble with
+\Describe{Option}{fill-options}{:prop}[\{fill=none,draw=black!30\}]
+\TikZ{} options to fill/draw the background with
 
-\Describe{Option}{draw-options}{:prop}[\{draw=black!30\}]
-\TikZ{} options to draw bubble with
+\Describe{Option}{draw-options}{:prop}[\{fill=black,draw=none\}]
+\TikZ{} options to fill/draw the bubble with
 
 \Describe{Option}{label-cs}{:str}[identity]
 Macro name to format labels
+
+\Describe{Option}{label-pos}{:str}[above]
+Position of the label
+
+\Describe{Option}{vertical}{:bool}[false]
+Stack the bubble vertically instead of horizontally
 
 \Describe{Option}{*}{:keyval}
 All other options are passed to \env{tikzpicture}
@@ -415,31 +420,145 @@ All other options are passed to \env{tikzpicture}
 
 \subsection{Examples}
 
-\subsubsection{Simple}
+\subsubsection{Horizontal}
 
 \begin{example}
 % hide borders
 \begin{bubblechart}[
-    draw-options={draw=none}]
+    fill-options={draw=none}]
   \value{Dim 1}{80}
   \value{Dim 2}{90}
   \value{Dim 3}{50}
 \end{bubblechart}
 \end{example}
 
-\subsubsection{Delimited}
-
 \begin{example}
-% Format labels, fill in red,
-% and show maximum dashed
+% Format labels, position below
+% fill in red, and
+% show maximum disk
 \begin{bubblechart}[
     label-cs=textinv,
-    fill-options={fill=red!50},
-    draw-options={draw=red!50,dashed}]
+    label-pos=below,
+    draw-options={
+        draw=none,
+        fill=red!50},
+    fill-options={
+        fill=red!10,
+        draw=none}]
   \value{Dim 1}{80}
   \value{Dim 2}{90}
   \value{Dim 3}{50}
 \end{bubblechart}
+\end{example}
+
+\subsubsection{Vertical}
+
+\begin{example}
+% Stack bubbles vertically
+% show max as a dotted line
+% and put labels in bold on the right
+\begin{bubblechart}[
+    vertical=true,
+    label-cs=textbf,
+    label-pos=right,
+    fill-options={
+        draw=black,
+        dotted}]
+  \value{Dim 1}{80}
+  \value{Dim 2}{90}
+  \value{Dim 3}{50}
+\end{bubblechart}
+\end{example}
+
+\section{Radial chart}
+
+\subsection{Usage}
+
+\DescribeEnv{radialchart}
+Environment that hold a radial chart. Accepts an optional argument \oarg{clist} which
+is comma separated list of keywords and values :
+
+\Describe{Option}{radius}{:fp}[1]
+Max radius in cm
+
+\Describe{Option}{gap}{:fp}[0.4]
+Gap between radials in cm
+
+\Describe{Option}{label-cs}{:str}[identity]
+cs name to format labels with
+
+\Describe{Option}{label-pos}{:str}[above]
+Label position relative to radial
+
+\Describe{Option}{value-cs}{:str}[identity]
+cs name to format values with
+
+\Describe{Option}{vertical}{:bool}[false]
+Stack radials vertically instead of horizontally
+
+\Describe{Option}{draw-options}{:prop}[black]
+\TikZ{} options to draw the radial with
+
+\Describe{Option}{fill-options}{:prop}[\{fill=none,draw=black!10\}]
+\TikZ{} options to fill/draw the center of the radial with
+
+\Describe{Option}{*}{:keyval}[line width=2mm,line cap=round]
+All other options are passed to \env{tikzpicture}
+
+\subsection{Examples}
+
+\subsubsection{Horizontal}
+
+\begin{example}
+\begin{radialchart}
+  \value{Dim 1}{80}
+  \value{Dim 2}{90}
+  \value{Dim 3}{50}
+\end{radialchart}
+\end{example}
+
+\DescribeMacro{redbold}
+Macro used to format values
+
+\begin{minted}{latex}
+%  bold text in red
+\NewDocumentCommand\redbold{m}{\textcolor{red!50}{\textbf{#1}}}
+\end{minted}
+
+\begin{example}
+% Format labels and values,
+% position labels below,
+% hide ring and show disc
+\begin{radialchart}[
+    label-cs=textinv,
+    label-pos=below,
+    value-cs=redbold,
+    draw-options={red!50},
+    fill-options={
+        draw=none,
+        fill=red!10}]
+  \value{Dim 1}{80}
+  \value{Dim 2}{90}
+  \value{Dim 3}{50}
+\end{radialchart}
+\end{example}
+
+\subsubsection{Vertical}
+
+\begin{example}
+% Stack radials vertically
+% and put labels on the right
+\begin{radialchart}[
+    vertical=true,
+    value-cs=textbf,
+    label-pos=right,
+    fill-options={
+        draw=black!10,
+        fill=black!10}]
+  \value{Dim 1}{80}
+  \value{Dim 2}{90}
+  \value{Dim 3}{50}
+\end{radialchart}
 \end{example}
 
 % \newpage
@@ -448,6 +567,11 @@ All other options are passed to \env{tikzpicture}
 \section{Changes}
 
 \begin{History}
+
+\Version{0.3.0}{2022/07/15}
+\item add a \env{radialchart} to draw radials
+\item add a vertical mode to \env{bubblechart} and allow positioning of the label
+\item swap \opt{fill-options} and \opt{draw-options} for \env{bubblechart} for consistency
 
 \Version{0.2.0}{2022/07/04}
 \item define a document class borrowed from \href{https://github.com/schlcht/microtype}{\pkg{microtype}}
