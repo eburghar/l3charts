@@ -1,5 +1,5 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{l3charts}[2022/07/15 0.3.0 Customizable tikz charts using latex3]
+\ProvidesPackage{l3charts}[2022/07/17 0.4.0 Customizable tikz charts using latex3]
 
 \RequirePackage{expl3}
 \RequirePackage{xparse}
@@ -11,6 +11,7 @@
 \makeatletter % to access latex2e variables
 
 \cs_set:Npn \identity #1 {#1} % identity cs to return the first argument as is
+\cs_set:Npn \nop #1 {} % nop cs to remove the first argument from input
 
 % Environment to draw kiviat charts
 % Inside kiviatchar environement at leats one dims environement must be defined
@@ -177,17 +178,19 @@
 	\prop_clear_new:N \l_tikz_prop % properties for tikzpicture
 	\clist_clear_new:N \l_tikz_clist % properties for tikzpicture as keyval string
 	\keys_define:nn {ballchart} {
-		n             .tl_set:N         = \l_n_tl,            % the number of circles
-		v-sep         .tl_set:N         = \l_vsep_tl,         % vertical separator
-		h-sep         .tl_set:N         = \l_hsep_tl,         % horizontal separator (circle)
-		radius        .tl_set:N         = \l_radius_tl,       % radius
-		gap           .tl_set:N         = \l_gap_tl,          % gap between circle
-		label-cs      .str_set:N        = \l_labelcs_str,     % cs name to format labels
-		fill-options  .tl_set:N         = \l_filloptions_str, % options to fill balls with
-		draw-options  .tl_set:N         = \l_drawoptions_str, % options to draw balls with
-		label-options .tl_set:N         = \l_labeloptions_tl, % options for dimensions axis
+		n             .tl_set:N  = \l_n_tl,            % the number of circles
+		v-sep         .tl_set:N  = \l_vsep_tl,         % vertical separator
+		h-sep         .tl_set:N  = \l_hsep_tl,         % horizontal separator (circle)
+		radius        .tl_set:N  = \l_radius_tl,       % radius
+		gap           .tl_set:N  = \l_gap_tl,          % gap between circle
+		fill-options  .tl_set:N  = \l_filloptions_str, % options to fill balls with
+		draw-options  .tl_set:N  = \l_drawoptions_str, % options to draw balls with
+		label-options .tl_set:N  = \l_labeloptions_tl, % options for dimensions axis
+		label-cs      .str_set:N = \l_labelcs_str,     % cs name to format labels
+		label-pos     .str_set:N = \l_labelpos_str,    % label position relative to bar
+		value-cs      .str_set:N = \l_valuecs_str,     % cs name to format values with
 		% forward all other options to tikzpicture
-		unknown       .code:n           = {\prop_put:Nxx \l_tikz_prop {\l_keys_key_str} {##1}}
+		unknown       .code:n    = {\prop_put:Nxx \l_tikz_prop {\l_keys_key_str} {##1}}
 	}
 	% set default options
 	\keys_set:nn {ballchart} {
@@ -196,10 +199,12 @@
 		h-sep         = 0.5,
 		radius        = 0.25,
 		gap           = 0.05,
-		label-cs      = identity,
 		fill-options  = {fill=black},
-		draw-options  = {draw=black!30},
-		label-options = {left}
+		draw-options  = {draw=none},
+		label-options = {},
+		label-cs      = identity,
+		label-pos     = left,
+		value-cs      = nop,
 	}
 	% override with given options if any
 	\IfValueT {#1} {\keys_set:nn {ballchart} {#1}}
@@ -209,18 +214,21 @@
 	}
 	\str_set:Nx \l_tikz_str {[\clist_use:Nn \l_tikz_clist {,}]}
 
+	\tl_set:Nn \l_width_tl {\fp_to_decimal:n {(\l_hsep_tl + \l_gap_tl) * \l_n_tl}}
+
 	\int_zero_new:N \l_count_int
 	% Command to add a new ballbar
 	% #1: label
 	% #2: percentage
 	\DeclareDocumentCommand \value {mm} {
 		\tl_set:Nx \l_perc_tl {\fp_to_decimal:n {##2 / 100}} 
-		\tl_set:Nx \l_y_tl {\fp_to_decimal:n {(\l_radius_tl*2 * \l_count_int) + (\l_vsep_tl * \l_count_int)}}
+		\tl_set:Nx \l_y_tl {\fp_to_decimal:n {(\l_radius_tl*2 + \l_vsep_tl) * \l_count_int}}
 		\tl_set:Nx \l_m_tl {\fp_to_decimal:n {\l_n_tl - 1}}
 
 		\exp_last_unbraced:Ne \draw {[\l_drawoptions_str, fill\c_space_tl fraction={\l_perc_tl}]} foreach \i in {0,...,\l_m_tl} {(\l_hsep_tl * \i + \l_gap_tl * \i, -\l_y_tl) circle (\l_radius_tl)};
 
-		\exp_last_unbraced:Ne \node {[\l_labeloptions_tl]} at (-\l_hsep_tl/2, -\l_y_tl) {\use:c {\l_labelcs_str} {##1}};
+		\exp_last_unbraced:Ne \node {(ball\int_use:N \l_count_int)} at (\l_width_tl/2, -\l_y_tl) {\makebox[\l_width_tl cm][c]{\use:c {\l_valuecs_str} {##2\%}}};
+		\exp_last_unbraced:Ne \node {[\l_labelpos_str=of\c_space_tl ball\int_use:N \l_count_int,\l_labeloptions_tl]} {\use:c {\l_labelcs_str} {##1}};
 		\int_incr:N \l_count_int
 	}
 
@@ -242,23 +250,29 @@
 	\clist_clear_new:N \l_tikz_clist % properties for tikzpicture as keyval string
 	% keyval options for the environment
 	\keys_define:nn {barchart} {
-		width        .tl_set:N         = \l_width_tl,        % maximum bar width, in cm
-		height       .tl_set:N         = \l_height_tl,
-		gap          .tl_set:N         = \l_gap_tl,
-		fill-options .tl_set:N         = \l_filloptions_str, % options to fill bar with
-		draw-options .tl_set:N         = \l_drawoptions_str, % options to draw bar with
-		label-cs     .str_set:N        = \l_labelcs_str,     % cs name to format labels
+		width         .tl_set:N  = \l_width_tl,        % maximum bar width
+		height        .tl_set:N  = \l_height_tl,
+		gap           .tl_set:N  = \l_gap_tl,
+		fill-options  .tl_set:N  = \l_filloptions_str, % options to fill background with
+		draw-options  .tl_set:N  = \l_drawoptions_str, % options to draw bar with
+		label-options .tl_set:N  = \l_labeloptions_tl, % TikZ options to draw the label with
+		label-cs      .str_set:N = \l_labelcs_str,     % cs name to format labels
+		label-pos     .str_set:N = \l_labelpos_str,    % label position relative to bar
+		value-cs      .str_set:N = \l_valuecs_str,     % cs name to format values with
 		% forward all other options to tikzpicture
-		unknown      .code:n           = {\prop_put:Nxx \l_tikz_prop {\l_keys_key_str} {##1}}
+		unknown       .code:n    = {\prop_put:Nxx \l_tikz_prop {\l_keys_key_str} {##1}}
 	}
 	% set default options
 	\keys_set:nn {barchart} {
-    	width        = 3,
-		height       = 0.35,
-		gap          = 0.25,
-		fill-options = {fill=black},
-		draw-options = {draw=black!20},
-		label-cs     = identity
+    	width         = 3,
+		height        = 0.35,
+		gap           = 0.25,
+		fill-options  = {fill=none},
+		draw-options  = {fill=black},
+		label-options = {},
+		label-cs      = identity,
+		label-pos     = left,
+		value-cs      = nop
 	}
 	% override with given options if any
 	\IfValueT {#1} {\keys_set:nn {barchart} {#1}}
@@ -275,9 +289,11 @@
 	\DeclareDocumentCommand \value {mm} {
 		\tl_set:Nx \l_barwidth_tl {\fp_to_decimal:n {\l_width_tl * ##2 / 100}}
 		\tl_set:Nx \l_barx_tl {\fp_to_decimal:n {(\l_height_tl * \l_count_int) + (\l_gap_tl * \l_count_int)}}
-		\exp_last_unbraced:Ne \draw {[\l_drawoptions_str]} (0,-\l_barx_tl) rectangle (\l_width_tl, -\l_barx_tl - \l_height_tl);
-		\exp_last_unbraced:Ne \fill {[\l_filloptions_str]} (0,-\l_barx_tl) rectangle (\l_barwidth_tl, -\l_barx_tl - \l_height_tl);
-		\node [left] at (0, -\l_barx_tl - 0.175) {\use:c {\l_labelcs_str} {##1}};
+
+		\exp_last_unbraced:Ne \fill {[\l_filloptions_str]} (0,-\l_barx_tl) rectangle (\l_width_tl, -\l_barx_tl - \l_height_tl);
+		\exp_last_unbraced:Ne \draw {[\l_drawoptions_str]} (0,-\l_barx_tl) rectangle (\l_barwidth_tl, -\l_barx_tl - \l_height_tl);
+		\exp_last_unbraced:Ne \node {(bar\int_use:N \l_count_int)} at (\l_width_tl/2,-\l_barx_tl-\l_height_tl/2) {\makebox[\l_width_tl cm][c]{\use:c {\l_valuecs_str} {##2\%}}};
+		\exp_last_unbraced:Ne \node {[\l_labelpos_str=of\c_space_tl bar\int_use:N \l_count_int,\l_labeloptions_tl]} {\use:c {\l_labelcs_str} {##1}};
 		\int_incr:N \l_count_int
 	}
 
@@ -297,21 +313,25 @@
     	gap          .tl_set:N   = \l_gap_tl,          % gap between bubbles
 		fill-options .tl_set:N   = \l_filloptions_str, % TikZ options to draw the background with
 		draw-options .tl_set:N   = \l_drawoptions_str, % TikZ options to draw the bubble with
+		label-options .tl_set:N  = \l_labeloptions_tl, % TikZ options to draw the label with
 		label-cs     .str_set:N  = \l_labelcs_str,     % cs name to format labels with
 		label-pos    .str_set:N  = \l_labelpos_str,    % label position relative to bubble
+		value-cs     .str_set:N  = \l_valuecs_str,     % cs name to format values with
 		vertical     .bool_set:N = \l_vertical_bool,   % stack bubbles vertically
 		% forward all other options to tikzpicture
 		unknown      .code:n   = {\prop_put:Nxx \l_tikz_prop {\l_keys_key_str} {##1}}
 	}
 	% set default options
 	\keys_set:nn {bubblechart} {
-		radius       = 1,
-		gap          = 0.3,
-		fill-options = {fill=none,draw=black!30},
-		draw-options = {fill=black,draw=none},
-		label-cs     = identity,
-		label-pos    = above,
-		vertical     = false
+		radius        = 1,
+		gap           = 0.3,
+		fill-options  = {fill=none,draw=none},
+		draw-options  = {fill=black},
+		label-options = {},
+		label-cs      = identity,
+		label-pos     = above,
+		value-cs      = nop,
+		vertical      = false
 	}
 	% override with given options if any
 	\IfValueT {#1} {\keys_set:nn {bubblechart} {#1}}
@@ -334,11 +354,12 @@
 			\tl_set:Nx \l_x_tl {\fp_to_decimal:n {\l_count_int * (\l_radius_tl * 2 + \l_gap_tl)}}
 			\tl_set:Nn \l_y_tl {0}
 		}
-		\exp_last_unbraced:Ne \draw {[\l_filloptions_str]} (\l_x_tl, \l_y_tl) circle (\l_radius_tl); 
+		\tl_set:Nn \l_diam_tl {\fp_to_decimal:n {\l_radius_tl * 2}cm} % diameter for makebox
+
+		\exp_last_unbraced:Ne \fill {[\l_filloptions_str]} (\l_x_tl, \l_y_tl) circle (\l_radius_tl); 
 		\exp_last_unbraced:Ne \draw {[\l_drawoptions_str]} (\l_x_tl, \l_y_tl) circle (\l_bubbleradius_tl);
-		% phantom node at bubble center for positioning labels relatively with
-		\exp_last_unbraced:Ne \node {(bubble\int_use:N \l_count_int)} at (\l_x_tl,\l_y_tl) {};
-		\exp_last_unbraced:Ne \node {[\l_labelpos_str=of\c_space_tl bubble\int_use:N \l_count_int]} {\use:c {\l_labelcs_str} {##1}};
+		\exp_last_unbraced:Ne \node {(bubble\int_use:N \l_count_int)} at (\l_x_tl,\l_y_tl) {\makebox[\l_diam_tl][c]{\use:c {\l_valuecs_str} {##2\%}}};
+		\exp_last_unbraced:Ne \node {[\l_labelpos_str=of\c_space_tl bubble\int_use:N \l_count_int,\l_labeloptions_tl]} {\use:c {\l_labelcs_str} {##1}};
 		\int_incr:N \l_count_int
 	}
 
@@ -354,14 +375,15 @@
 	\clist_clear_new:N \l_tikz_clist % properties for tikzpicture as keyval string
 	% keyval options for the environment
 	\keys_define:nn {radialchart} {
-		radius       .tl_set:N   = \l_radius_tl,      % max radius
-    	gap          .tl_set:N   = \l_gap_tl,         % gap between radials
-		label-cs     .str_set:N  = \l_labelcs_str,    % cs name to format labels with
-		label-pos    .str_set:N  = \l_labelpos_str,   % label position relative to radial
-		value-cs     .str_set:N  = \l_valuecs_str,    % cs name to format values with
-		vertical     .bool_set:N = \l_vertical_bool,  % stack radials vertically
-		draw-options .tl_set:N   = \l_drawoptions_tl, % TikZ options to draw the radial with
-		fill-options .tl_set:N   = \l_filloptions_tl, % TikZ options to fill/draw the center of the radial with
+		radius       .tl_set:N   = \l_radius_tl,       % max radius
+    	gap          .tl_set:N   = \l_gap_tl,          % gap between radials
+		fill-options .tl_set:N   = \l_filloptions_tl,  % TikZ options to fill/draw the center of the radial with
+		draw-options .tl_set:N   = \l_drawoptions_tl,  % TikZ options to draw the radial with
+		label-options .tl_set:N  = \l_labeloptions_tl, % TikZ options to draw the label with
+		label-cs     .str_set:N  = \l_labelcs_str,     % cs name to format labels with
+		label-pos    .str_set:N  = \l_labelpos_str,    % label position relative to radial
+		value-cs     .str_set:N  = \l_valuecs_str,     % cs name to format values with
+		vertical     .bool_set:N = \l_vertical_bool,   % stack radials vertically
 		% forward all other options to tikzpicture
 		unknown      .code:n   = {\prop_put:Nxx \l_tikz_prop {\l_keys_key_str} {##1}}
 	}
@@ -369,12 +391,13 @@
 	\keys_set:nx {radialchart} {
 		radius                = 1,
 		gap                   = 0.4,
+		fill-options          = {fill=none,draw=black!10},
+		draw-options          = black,
+		label-options         = {},
 		label-cs              = identity,
 		label-pos             = above,
 		value-cs              = identity,
 		vertical              = false,
-		draw-options          = black,
-		fill-options          = {fill=none,draw=black!10},
 		% default options forwarded to tikzpicture
 		line\c_space_tl width = 2mm,
 		line\c_space_tl cap   = round
@@ -386,7 +409,6 @@
 		\clist_put_right:Nn \l_tikz_clist {##1=##2}
 	}
 	\str_set:Nx \l_tikz_str {[\clist_use:Nn \l_tikz_clist {,}]}
-	\str_show:N \l_tikz_str
 
 	% Draw an arc from a center
 	% #1: TikZ options to draw the arc with
@@ -411,10 +433,12 @@
 			\tl_set:Nx \l_x_tl {\fp_to_decimal:n {\l_count_int * (\l_radius_tl * 2 + \l_gap_tl)}}
 			\tl_set:Nn \l_y_tl {0}
 		}
-		\exp_last_unbraced:Ne \draw {[\l_filloptions_tl]} (\l_x_tl,\l_y_tl) circle (\l_radius_tl);
+		\tl_set:Nn \l_diam_tl {\fp_to_decimal:n {\l_radius_tl * 2}cm} % diameter for makebox
+
+		\exp_last_unbraced:Ne \fill {[\l_filloptions_tl]} (\l_x_tl,\l_y_tl) circle (\l_radius_tl);
 		\exp_last_unbraced:Ne \centerarc {[\l_drawoptions_tl]} (\l_x_tl,\l_y_tl) (90,\l_tmpa_tl,\l_radius_tl);
-		\exp_last_unbraced:Ne \node {(radial\int_use:N \l_count_int)} at (\l_x_tl,\l_y_tl) {\use:c {\l_valuecs_str} {##2\%}};
-		\exp_last_unbraced:Ne \node {[\l_labelpos_str=of\c_space_tl radial\int_use:N \l_count_int]} {\use:c {\l_labelcs_str} {##1}};
+		\exp_last_unbraced:Ne \node {(radial\int_use:N \l_count_int)} at (\l_x_tl,\l_y_tl) {\makebox[\l_diam_tl][c]{\use:c {\l_valuecs_str} {##2\%}}};
+		\exp_last_unbraced:Ne \node {[\l_labelpos_str=of\c_space_tl radial\int_use:N \l_count_int,\l_labeloptions_tl]} {\use:c {\l_labelcs_str} {##1}};
 		\int_incr:N \l_count_int
 	}
 	% start a picture (expand option before begin)

@@ -21,7 +21,10 @@
 
 % format label white on black
 \NewDocumentCommand\textinv{m}{\colorbox{black}{\textcolor{white}{#1}}}
-\NewDocumentCommand\redbold{m}{\textcolor{red!50}{\textbf{#1}}}
+% bold red
+\NewDocumentCommand\redbf{m}{\textcolor{red!50}{\textbf{#1}}}
+% bold white
+\NewDocumentCommand\whitebf{m}{\textcolor{white}{\textbf{#1}}}
 
 % Start document
 \RecordChanges
@@ -33,7 +36,7 @@
 \def\githuburl{https://git.itsufficient.me/latex/l3charts}
 
 \begin{document}
-\newgeometry{scale={0.8,0.9},top=4cm}% title page is centered
+\newgeometry{scale={0.8,0.9},top=1cm} % title page is centered
 \maketitle
 \thispagestyle{empty}
 \begin{abstract}
@@ -103,13 +106,6 @@ Name of the cs used to format labels
 \Describe{Option}{unit-cs}{:str}[tinytt]
 Name of the cs used to format unit scale
 
-\DescribeMacro{tinytt}
-Macro used to format unit labels
-
-\begin{minted}{latex}
-\cs_new:Npn \tinytt #1 {\texttt{\tiny #1}}
-\end{minted}
-
 \DescribeMacro{value}
 \cs{value}\oarg{clist}\marg{label} is used to add a dimension to the kiviat chart. \oarg{clist} is
 passed to \TikZ{} to draw the nodes corresponding to the labels.
@@ -138,13 +134,6 @@ corresponds to the dimension in \env{dims} at the same index.
 
 Use \key{label-cs} to call \cs{textinv} to format the labels.
 
-\DescribeMacro{textinv}
-Macro used to format labels
-
-\begin{minted}{latex}
-%  white text on black background
-\NewDocumentCommand\textinv{m}{\colorbox{black}{\textcolor{white}{#1}}}
-\end{minted}
 
 \begin{example}
 % scale is passed to tikzpicture
@@ -204,8 +193,8 @@ Macro used to format labels
   \begin{set}[
       fill=green,
       dot-options={
-          fill,diamond,
-          inner sep=2pt
+        fill,diamond,
+        inner sep=2pt
       }]
     \value{2}
     \value{4}
@@ -270,11 +259,20 @@ Macro name to format labels
 \Describe{Option}{fill-options}{:prop}[\{fill=black\}]
 \TikZ{} options to fill balls with
 
-\Describe{Option}{draw-options}{:prop}[\{draw=black!30\}]
+\Describe{Option}{draw-options}{:prop}[\{draw=none\}]
 \TikZ{} options to draw balls with
 
 \Describe{Option}{label-options}{:prop}[\{left\}]
 \TikZ{} options for dimensions axis
+
+\Describe{Option}{label-cs}{:str}[identity]
+Macro name to format labels
+
+\Describe{Option}{label-pos}{:str}[left]
+Position of the label
+
+\Describe{Option}{value-cs}{:str}[nop]
+cs name to format values with
 
 \Describe{Option}{*}{:keyval}
 All other options are passed to \env{tikzpicture}
@@ -287,9 +285,24 @@ All other options are passed to \env{tikzpicture}
 \subsubsection{Simple}
 
 \begin{example}
-% 5 circles bar, hide the circles
+\begin{ballchart}
+  \value{Dim 1}{95}
+  \value{Dim 2}{80}
+  \value{Dim 3}{80}
+  \value{Dim 4}{20}
+\end{ballchart}
+\end{example}
+
+\begin{example}
 \begin{ballchart}[
-    draw-options={draw=none}]
+    % inverted labels
+    label-cs=textinv,
+    % to the right
+    label-pos=right,
+    % closer to the bar
+    label-options={xshift=-0.8cm},
+    % show circle
+    draw-options={draw=black!30}]
   \value{Dim 1}{95}
   \value{Dim 2}{80}
   \value{Dim 3}{80}
@@ -300,13 +313,18 @@ All other options are passed to \env{tikzpicture}
 \subsubsection{Delimited}
 
 \begin{example}
-% 6 circles bar, format the labels,
-% fill in red, and shows circles
 \begin{ballchart}[
+    % 6 circles per bar
     n=6,
-    label-cs=textinv,
+    % red labels
+    label-cs=redbf,
+    % closer to bar
+    label-options={xshift=0.4cm},
+    % add vertical space
     v-sep=0.2,
+    % fill in red
     fill-options={fill=red!50},
+    % black circle
     draw-options={draw=black}]
   \value{Dim 1}{95}
   \value{Dim 2}{80}
@@ -332,14 +350,23 @@ Bar height in \emph{cm}
 \Describe{Option}{gap}{:fp}[0.25]
 Gap in \emph{cm}
 
-\Describe{Option}{fill-options}{:prop}[\{fill=black\}]
+\Describe{Option}{fill-options}{:prop}[\{fill=none\}]
 \TikZ{} options to fill the bar with
 
-\Describe{Option}{draw-options}{:prop}[\{draw=black!20\}]
+\Describe{Option}{draw-options}{:prop}[\{fill=black\}]
 \TikZ{} options to draw the bar with
 
-\Describe{Option}{label-cs}{:prop}[identity]
+\Describe{Option}{label-options}{:prop}[\{\}]
+\TikZ{} options for dimensions axis
+
+\Describe{Option}{label-cs}{:str}[identity]
 Macro name to format labels
+
+\Describe{Option}{label-pos}{:str}[left]
+Position of the label
+
+\Describe{Option}{value-cs}{:str}[nop]
+cs name to format values with
 
 \Describe{Option}{*}{:keyval}
 All other options are passed to \env{tikzpicture}
@@ -352,9 +379,7 @@ All other options are passed to \env{tikzpicture}
 \subsubsection{Simple}
 
 \begin{example}
-% hide borders
-\begin{barchart}[
-    draw-options={draw=none}]
+\begin{barchart}
   \value{Dim 1}{60}
   \value{Dim 2}{100}
   \value{Dim 3}{70}
@@ -364,16 +389,43 @@ All other options are passed to \env{tikzpicture}
 \end{barchart}
 \end{example}
 
-\subsubsection{Delimited}
+\begin{example}
+\begin{barchart}[
+    % inverted labels
+    label-cs=textinv,
+    % to the right
+    label-pos=right,
+    % closer to bar
+    label-options={xshift=-0.8cm}]
+  \value{Dim 1}{60}
+  \value{Dim 2}{100}
+  \value{Dim 3}{70}
+  \value{Dim 4}{70}
+  \value{Dim 5}{40}
+  \value{Dim 6}{60}
+\end{barchart}
+\end{example}
+
+\subsubsection{Gauge}
 
 \begin{example}
-% 3cm wide bars, format labels,
-% fill in red and show borders 
 \begin{barchart}[
-    width=3,
-    label-cs=textinv,
-    fill-options={fill=red!50},
-    draw-options={draw=red!50}]
+    % 4cm wide bars
+    width=4,
+    % inverted labels
+    label-cs=redbf,
+    % closer to bar
+    label-options={xshift=0.4cm},
+    % show values
+    value-cs=whitebf,
+    % bar in red
+    draw-options={
+      draw=red!50,
+      fill=red!50},
+    % show borders in red
+    fill-options={
+      fill=red!30,
+      draw=red!30}]
   \value{Dim 1}{60}
   \value{Dim 2}{100}
   \value{Dim 3}{70}
@@ -397,10 +449,10 @@ Max radius in \emph{cm}
 \Describe{Option}{gap}{:fp}[0.3]
 Gap between bubbles in \emph{cm}
 
-\Describe{Option}{fill-options}{:prop}[\{fill=none,draw=black!30\}]
+\Describe{Option}{fill-options}{:prop}[\{fill=none,draw=none\}]
 \TikZ{} options to fill/draw the background with
 
-\Describe{Option}{draw-options}{:prop}[\{fill=black,draw=none\}]
+\Describe{Option}{draw-options}{:prop}[\{fill=black\}]
 \TikZ{} options to fill/draw the bubble with
 
 \Describe{Option}{label-cs}{:str}[identity]
@@ -408,6 +460,9 @@ Macro name to format labels
 
 \Describe{Option}{label-pos}{:str}[above]
 Position of the label
+
+\Describe{Option}{value-cs}{:str}[nop]
+cs name to format values with
 
 \Describe{Option}{vertical}{:bool}[false]
 Stack the bubble vertically instead of horizontally
@@ -423,9 +478,7 @@ All other options are passed to \env{tikzpicture}
 \subsubsection{Horizontal}
 
 \begin{example}
-% hide borders
-\begin{bubblechart}[
-    fill-options={draw=none}]
+\begin{bubblechart}
   \value{Dim 1}{80}
   \value{Dim 2}{90}
   \value{Dim 3}{50}
@@ -433,18 +486,36 @@ All other options are passed to \env{tikzpicture}
 \end{example}
 
 \begin{example}
-% Format labels, position below
-% fill in red, and
-% show maximum disk
 \begin{bubblechart}[
+    % inverted labels
     label-cs=textinv,
+    % below bubble
     label-pos=below,
-    draw-options={
-        draw=none,
-        fill=red!50},
+    % show borders
     fill-options={
-        fill=red!10,
-        draw=none}]
+      fill=none,
+      draw=black!30}]
+  \value{Dim 1}{80}
+  \value{Dim 2}{90}
+  \value{Dim 3}{50}
+\end{bubblechart}
+\end{example}
+
+\begin{example}
+\begin{bubblechart}[
+    % label in red
+    label-cs=redbf,
+    % below bubble
+    label-pos=below,
+    % show value
+    value-cs=whitebf,
+    % bubble in red
+    draw-options={
+      draw=red!50,
+      fill=red!50},
+    % background in light red
+    fill-options={
+      fill=red!10}]
   \value{Dim 1}{80}
   \value{Dim 2}{90}
   \value{Dim 3}{50}
@@ -454,16 +525,20 @@ All other options are passed to \env{tikzpicture}
 \subsubsection{Vertical}
 
 \begin{example}
-% Stack bubbles vertically
-% show max as a dotted line
-% and put labels in bold on the right
 \begin{bubblechart}[
+    % stack bubbles vertically
     vertical=true,
+    % label in bold
     label-cs=textbf,
+    % show values
+    value-cs=whitebf,
+    % to the right
     label-pos=right,
+    % show max as dotted line
     fill-options={
-        draw=black,
-        dotted}]
+      fill=none,
+      draw=black,
+      dotted}]
   \value{Dim 1}{80}
   \value{Dim 2}{90}
   \value{Dim 3}{50}
@@ -484,6 +559,15 @@ Max radius in cm
 \Describe{Option}{gap}{:fp}[0.4]
 Gap between radials in cm
 
+\Describe{Option}{fill-options}{:prop}[\{fill=none,draw=black!10\}]
+\TikZ{} options to fill/draw the center of the radial with
+
+\Describe{Option}{draw-options}{:prop}[black]
+\TikZ{} options to draw the radial with
+
+\Describe{Option}{label-options}{:prop}[\{\}]
+\TikZ{} options drawing for unit labels
+
 \Describe{Option}{label-cs}{:str}[identity]
 cs name to format labels with
 
@@ -495,12 +579,6 @@ cs name to format values with
 
 \Describe{Option}{vertical}{:bool}[false]
 Stack radials vertically instead of horizontally
-
-\Describe{Option}{draw-options}{:prop}[black]
-\TikZ{} options to draw the radial with
-
-\Describe{Option}{fill-options}{:prop}[\{fill=none,draw=black!10\}]
-\TikZ{} options to fill/draw the center of the radial with
 
 \Describe{Option}{*}{:keyval}[line width=2mm,line cap=round]
 All other options are passed to \env{tikzpicture}
@@ -517,26 +595,20 @@ All other options are passed to \env{tikzpicture}
 \end{radialchart}
 \end{example}
 
-\DescribeMacro{redbold}
-Macro used to format values
-
-\begin{minted}{latex}
-%  bold text in red
-\NewDocumentCommand\redbold{m}{\textcolor{red!50}{\textbf{#1}}}
-\end{minted}
 
 \begin{example}
-% Format labels and values,
-% position labels below,
-% hide ring and show disc
 \begin{radialchart}[
+    % inverted label,
     label-cs=textinv,
+    % below radial,
     label-pos=below,
-    value-cs=redbold,
+    % in red bold.
+    value-cs=redbf,
+    % ring is red
     draw-options={red!50},
+    % disk is light red
     fill-options={
-        draw=none,
-        fill=red!10}]
+      fill=red!10}]
   \value{Dim 1}{80}
   \value{Dim 2}{90}
   \value{Dim 3}{50}
@@ -546,20 +618,72 @@ Macro used to format values
 \subsubsection{Vertical}
 
 \begin{example}
-% Stack radials vertically
-% and put labels on the right
 \begin{radialchart}[
+    % stack radials vertically
     vertical=true,
+    % bold label
     value-cs=textbf,
+    % to the right
     label-pos=right,
+    % same color for disk and ring
     fill-options={
-        draw=black!10,
-        fill=black!10}]
+      draw=black!10,
+      fill=black!10}]
   \value{Dim 1}{80}
   \value{Dim 2}{90}
   \value{Dim 3}{50}
 \end{radialchart}
 \end{example}
+
+\section{Utilities macros}
+
+These are the macros used as default value for \opt{label-cs} or \opt{value-cs} options.
+
+\DescribeMacro{tinytt}
+Macro used to format its argument as tiny monospace
+
+\begin{minted}{latex}
+\cs_set:Npn \tinytt #1 {\texttt{\tiny #1}}
+\end{minted}
+
+\DescribeMacro{identity}
+Macro used to return the first argument as is
+
+\begin{minted}{latex}
+\cs_set:Npn \identity #1 {#1} 
+\end{minted}
+
+\DescribeMacro{nop}
+Macro used to remove the first argument from input
+
+\begin{minted}{latex}
+\cs_set:Npn \nop #1 {}
+\end{minted}
+
+\section{Examples macros}
+
+These are the macros defined for the examples and are not part of the module \module{l3charts}.
+
+\DescribeMacro{textinv}
+Macro used to format its argument as white text on black background
+
+\begin{minted}{latex}
+\NewDocumentCommand\textinv{m}{\colorbox{black}{\textcolor{white}{#1}}}
+\end{minted}
+
+\DescribeMacro{redbf}
+Macro used to format its argument as bold and red
+
+\begin{minted}{latex}
+\NewDocumentCommand\redbf{m}{\textcolor{red!50}{\textbf{#1}}}
+\end{minted}
+
+\DescribeMacro{whitebf}
+Macro used to format its argument as bold and white
+
+\begin{minted}{latex}
+\NewDocumentCommand\whitebf{m}{\textcolor{white}{\textbf{#1}}}
+\end{minted}
 
 % \newpage
 \PrintIndex
@@ -567,6 +691,11 @@ Macro used to format values
 \section{Changes}
 
 \begin{History}
+
+\Version{0.4.0}{2022/07/17}
+\item add values to \env{bubblechart}
+\item label positioning on \env{barchart} and \env{ballchart}
+\item swap \opt{fill-options} and \opt{draw-options} for \env{barchart} for consistency
 
 \Version{0.3.0}{2022/07/15}
 \item add a \env{radialchart} to draw radials

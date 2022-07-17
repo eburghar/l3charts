@@ -20,7 +20,7 @@ installfiles = sourcefiles
 
 uploadconfig = {
     pkg          = "l3charts",
-    version      = "0.3.0",
+    version      = "0.4.0",
     author       = "Éric BURGHARD",
     uploader     = "Éric BURGHARD",
     email        = "ctan@itsufficient.me",
