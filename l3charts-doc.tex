@@ -43,7 +43,7 @@
   This package defines a few simple \TikZ{} charts that can be drawn using \LaTeX{}
   environments. This has mainly been developed as an experimentation of \texttt{expl3}
   for checking what \LaTeX3 really brought to facilitate package development (expansion
-  control, clist, seq, prop, ...).
+  control, seq, prop, keys, int, bool, fp, dim, ...).
 \end{abstract}
 \tableofcontents
 \newpage
@@ -239,28 +239,25 @@ Environment that hold a ball chart. Accepts an optional argument \oarg{clist} wh
 is comma separated list of keywords and values :
 
 \Describe{Option}{n}{:int}[5]
-The number of circles
+The number of circles per bar
 
-\Describe{Option}{v-sep}{:fp}[0.1]
-Vertical separator in \emph{cm}
+\Describe{Option}{gap}{:dim}[1ex]
+Gap between bars
 
-\Describe{Option}{h-sep}{:fp}[0.5]
-Horizontal separator (circle) in \emph{cm}
+\Describe{Option}{cgap}{:dim}[1pt]
+Gap between circles
 
-\Describe{Option}{radius}{:fp}[0.25]
-Radius of the circles in \emph{cm}
-
-\Describe{Option}{gap}{:fp}[0.05]
-Gap between circle in \emph{cm}
+\Describe{Option}{radius}{:dim}[2.5mm]
+Radius of the circles
 
 \Describe{Option}{label-cs}{:str}[identity]
 Macro name to format labels
 
 \Describe{Option}{fill-options}{:prop}[\{fill=black\}]
-\TikZ{} options to fill balls with
+\TikZ{} options to fill the balls with
 
 \Describe{Option}{draw-options}{:prop}[\{draw=none\}]
-\TikZ{} options to draw balls with
+\TikZ{} options to draw the balls with
 
 \Describe{Option}{label-options}{:prop}[\{left\}]
 \TikZ{} options for dimensions axis
@@ -300,7 +297,7 @@ All other options are passed to \env{tikzpicture}
     % to the right
     label-pos=right,
     % closer to the bar
-    label-options={xshift=-0.8cm},
+    label-options={xshift=-8mm},
     % show circle
     draw-options={draw=black!30}]
   \value{Dim 1}{95}
@@ -319,9 +316,10 @@ All other options are passed to \env{tikzpicture}
     % red labels
     label-cs=redbf,
     % closer to bar
-    label-options={xshift=0.4cm},
-    % add vertical space
-    v-sep=0.2,
+    label-options={xshift=4mm},
+    % bigger gap
+    gap=1.5ex,
+    cgap=3pt,
     % fill in red
     fill-options={fill=red!50},
     % black circle
@@ -341,14 +339,14 @@ All other options are passed to \env{tikzpicture}
 Environment that hold a bar chart. Accepts an optional argument \oarg{clist} which
 is comma separated list of keywords and values :
 
-\Describe{Option}{width}{:fp}[3]
-Maximum width in \emph{cm}
+\Describe{Option}{width}{:dim}[3cm]
+Maximum width
 
-\Describe{Option}{height}{:fp}[0.35]
-Bar height in \emph{cm}
+\Describe{Option}{height}{:dim}[3.5mm]
+Bar height
 
-\Describe{Option}{gap}{:fp}[0.25]
-Gap in \emph{cm}
+\Describe{Option}{gap}{:dim}[1ex]
+Gap between bars
 
 \Describe{Option}{fill-options}{:prop}[\{fill=none\}]
 \TikZ{} options to fill the bar with
@@ -396,7 +394,7 @@ All other options are passed to \env{tikzpicture}
     % to the right
     label-pos=right,
     % closer to bar
-    label-options={xshift=-0.8cm}]
+    label-options={xshift=-8mm}]
   \value{Dim 1}{60}
   \value{Dim 2}{100}
   \value{Dim 3}{70}
@@ -411,13 +409,15 @@ All other options are passed to \env{tikzpicture}
 \begin{example}
 \begin{barchart}[
     % 4cm wide bars
-    width=4,
+    width=4cm,
     % inverted labels
     label-cs=redbf,
     % closer to bar
-    label-options={xshift=0.4cm},
+    label-options={xshift=4mm},
     % show values
     value-cs=whitebf,
+    % bigger gap
+    gap=1.5ex,
     % bar in red
     draw-options={
       draw=red!50,
@@ -443,11 +443,11 @@ All other options are passed to \env{tikzpicture}
 Environment that hold a bubble chart. Accepts an optional argument \oarg{clist} which
 is comma separated list of keywords and values :
 
-\Describe{Option}{radius}{:fp}[1]
-Max radius in \emph{cm}
+\Describe{Option}{radius}{:dim}[1cm]
+Max radius
 
-\Describe{Option}{gap}{:fp}[0.3]
-Gap between bubbles in \emph{cm}
+\Describe{Option}{gap}{:dim}[1ex]
+Gap between bubbles
 
 \Describe{Option}{fill-options}{:prop}[\{fill=none,draw=none\}]
 \TikZ{} options to fill/draw the background with
@@ -527,7 +527,7 @@ All other options are passed to \env{tikzpicture}
 \begin{example}
 \begin{bubblechart}[
     % stack bubbles vertically
-    vertical=true,
+    vertical,
     % label in bold
     label-cs=textbf,
     % show values
@@ -553,11 +553,11 @@ All other options are passed to \env{tikzpicture}
 Environment that hold a radial chart. Accepts an optional argument \oarg{clist} which
 is comma separated list of keywords and values :
 
-\Describe{Option}{radius}{:fp}[1]
-Max radius in cm
+\Describe{Option}{radius}{:dim}[1cm]
+Max radius
 
-\Describe{Option}{gap}{:fp}[0.4]
-Gap between radials in cm
+\Describe{Option}{gap}{:dim}[2.5ex]
+Gap between radials
 
 \Describe{Option}{fill-options}{:prop}[\{fill=none,draw=black!10\}]
 \TikZ{} options to fill/draw the center of the radial with
@@ -620,11 +620,13 @@ All other options are passed to \env{tikzpicture}
 \begin{example}
 \begin{radialchart}[
     % stack radials vertically
-    vertical=true,
+    vertical,
     % bold label
     value-cs=textbf,
     % to the right
     label-pos=right,
+    % rect ring
+    line cap=rect,
     % same color for disk and ring
     fill-options={
       draw=black!10,
@@ -635,9 +637,12 @@ All other options are passed to \env{tikzpicture}
 \end{radialchart}
 \end{example}
 
-\section{Utilities macros}
+\section{Macros}
 
-These are the macros used as default value for \opt{label-cs} or \opt{value-cs} options.
+\subsection{Package}
+
+These are macros defined in \pkg{l3charts.sty} and used as default value for \opt{label-cs}
+or \opt{value-cs} options.
 
 \DescribeMacro{tinytt}
 Macro used to format its argument as tiny monospace
@@ -654,15 +659,16 @@ Macro used to return the first argument as is
 \end{minted}
 
 \DescribeMacro{nop}
-Macro used to remove the first argument from input
+Macro used to consume the first argument and do nothing
 
 \begin{minted}{latex}
 \cs_set:Npn \nop #1 {}
 \end{minted}
 
-\section{Examples macros}
+\subsection{Examples}
 
-These are the macros defined for the examples and are not part of the module \module{l3charts}.
+These macros are defined for the examples presented in this document and are not part of
+the module \pkg{l3charts.sty}.
 
 \DescribeMacro{textinv}
 Macro used to format its argument as white text on black background
@@ -691,6 +697,11 @@ Macro used to format its argument as bold and white
 \section{Changes}
 
 \begin{History}
+
+\Version{0.5.0}{2022/07/18}
+\item convert all \type{fp} to \type{dim} for usability
+\item rename \opt{v-sep} and \opt{h-sep} options of \env{ballchart} to \opt{gap} and \opt{cgap} 
+for consistency
 
 \Version{0.4.0}{2022/07/17}
 \item add values to \env{bubblechart}

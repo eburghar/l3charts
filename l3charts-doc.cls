@@ -10,7 +10,7 @@
 	\geometry{
 		paper=a4paper,
 		vmargin={2cm,2cm},
-		hmargin={4.7cm,1.5cm},
+		hmargin={4.7cm,1cm},
 		% showframe % Uncomment to show how the type block is set on the page
 	}
 
@@ -31,7 +31,7 @@
 \def\PackageFont{\ttfamily}
 
 % space between paragraphs. Remove first line indent
-\usepackage[indent=0]{parskip}
+\usepackage[indent=0pt]{parskip}
 
 \usepackage{xcolor}
 	\definecolor{thered}    {rgb} {0.65,0.04,0.07}
@@ -430,6 +430,7 @@
 \DeclareRobustCommand\opt[1]{{\ttfamily#1}\@bsphack\CatIndex{#1}{option}\@esphack}
 \DeclareRobustCommand\file[1]{{\ttfamily#1}}
 \DeclareRobustCommand\env[1]{{\ttfamily#1} (\emph{env})\@bsphack\CatIndex{#1}{environment}\@esphack}
+\DeclareRobustCommand\type[1]{\Variable{#1}}
 
 \def\MTrmn#1{\ifrmnum{#1}{\rmntonum{#1}}{#1}}
 % write references to the User manual intermediarily in roman numerals
@@ -444,7 +445,7 @@
 	\newcommand\Version[2]{
 		\vskip\topsep
 		\pagebreak[2]
-		\item[\textsf{\bfseries\color{sectioning}#1}]\textsf{\bfseries\color{sectioning}(#2)}
+		\item[\textsf{\bfseries\color{sectioning}##1}]\textsf{\bfseries\color{sectioning}(##2)}
 		\vskip\topsep
 		\nopagebreak}
 	\list\labelitemi
