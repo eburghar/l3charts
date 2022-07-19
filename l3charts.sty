@@ -1,5 +1,5 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{l3charts}[2022/07/18 0.5.0 Customizable tikz charts using latex3]
+\ProvidesPackage{l3charts}[2022/07/19 0.5.1 Customizable tikz charts using latex3]
 
 \RequirePackage{expl3}
 \RequirePackage{xparse}
@@ -12,6 +12,7 @@
 
 \cs_set:Npn \identity #1 {#1} % identity cs to return the first argument as is
 \cs_set:Npn \nop #1 {} % nop cs to remove the first argument from input
+\cs_set:Npn \percent #1 {#1\%} % nop cs to remove the first argument from input
 
 % Environment to draw kiviat charts
 % Inside kiviatchar environement at least one dims environment must be defined
@@ -225,7 +226,7 @@
 
 		\exp_last_unbraced:Ne \draw {[\l_drawoptions_str, fill\c_space_tl fraction={\l_perc_tl}]} foreach \i in {0,...,\l_m_tl} {(2\l_radius_dim * \i + \l_cgap_dim * \i, -\l_y_tl) circle (\l_radius_dim)};
 
-		\exp_last_unbraced:Ne \node {(ball\int_use:N \l_count_int)} at (\l_width_tl/2, -\l_y_tl) {\makebox[\l_width_tl cm][c]{\use:c {\l_valuecs_str} {##2\%}}};
+		\exp_last_unbraced:Ne \node {(ball\int_use:N \l_count_int)} at (\l_width_tl/2, -\l_y_tl) {\makebox[\l_width_tl cm][c]{\use:c {\l_valuecs_str} {##2}}};
 		\exp_last_unbraced:Ne \node {[\l_labelpos_str=of\c_space_tl ball\int_use:N \l_count_int,\l_labeloptions_tl]} {\use:c {\l_labelcs_str} {##1}};
 		\int_incr:N \l_count_int
 	}
@@ -294,7 +295,7 @@
 
 		\exp_last_unbraced:Ne \fill {[\l_filloptions_str]} (\l_x_tl,-\l_y_tl) rectangle (\l_w_dim, -\l_bary_tl);
 		\exp_last_unbraced:Ne \draw {[\l_drawoptions_str]} (\l_x_tl,-\l_y_tl) rectangle (\l_barx_tl, -\l_bary_tl);
-		\exp_last_unbraced:Ne \node {(bar\int_use:N \l_count_int)} at (\l_cx_tl,-\l_cy_tl) {\makebox[\l_w_dim][c]{\use:c {\l_valuecs_str} {##2\%}}};
+		\exp_last_unbraced:Ne \node {(bar\int_use:N \l_count_int)} at (\l_cx_tl,-\l_cy_tl) {\makebox[\l_w_dim][c]{\use:c {\l_valuecs_str} {##2}}};
 		\exp_last_unbraced:Ne \node {[\l_labelpos_str=of\c_space_tl bar\int_use:N \l_count_int,\l_labeloptions_tl]} {\use:c {\l_labelcs_str} {##1}};
 		\int_incr:N \l_count_int
 	}
@@ -360,7 +361,7 @@
 
 		\exp_last_unbraced:Ne \fill {[\l_filloptions_str]} (\l_x_tl, \l_y_tl) circle (\l_radius_dim); 
 		\exp_last_unbraced:Ne \draw {[\l_drawoptions_str]} (\l_x_tl, \l_y_tl) circle (\l_bubbleradius_tl);
-		\exp_last_unbraced:Ne \node {(bubble\int_use:N \l_count_int)} at (\l_x_tl,\l_y_tl) {\makebox[2\l_radius_dim][c]{\use:c {\l_valuecs_str} {##2\%}}};
+		\exp_last_unbraced:Ne \node {(bubble\int_use:N \l_count_int)} at (\l_x_tl,\l_y_tl) {\makebox[2\l_radius_dim][c]{\use:c {\l_valuecs_str} {##2}}};
 		\exp_last_unbraced:Ne \node {[\l_labelpos_str=of\c_space_tl bubble\int_use:N \l_count_int,\l_labeloptions_tl]} {\use:c {\l_labelcs_str} {##1}};
 		\int_incr:N \l_count_int
 	}
@@ -398,7 +399,7 @@
 		label-options = {},
 		label-cs      = identity,
 		label-pos     = above,
-		value-cs      = identity,
+		value-cs      = percent,
 		vertical      = false,
 		% default options forwarded to tikzpicture
 		line\c_space_tl width = 2mm,
@@ -438,7 +439,7 @@
 
 		\exp_last_unbraced:Ne \fill {[\l_filloptions_tl]} (\l_x_tl,\l_y_tl) circle (\l_radius_dim);
 		\exp_last_unbraced:Ne \centerarc {[\l_drawoptions_tl]} (\l_x_tl,\l_y_tl) (90,\l_tmpa_tl,\l_radius_dim);
-		\exp_last_unbraced:Ne \node {(radial\int_use:N \l_count_int)} at (\l_x_tl,\l_y_tl) {\makebox[2\l_radius_dim][c]{\use:c {\l_valuecs_str} {##2\%}}};
+		\exp_last_unbraced:Ne \node {(radial\int_use:N \l_count_int)} at (\l_x_tl,\l_y_tl) {\makebox[2\l_radius_dim][c]{\use:c {\l_valuecs_str} {##2}}};
 		\exp_last_unbraced:Ne \node {[\l_labelpos_str=of\c_space_tl radial\int_use:N \l_count_int,\l_labeloptions_tl]} {\use:c {\l_labelcs_str} {##1}};
 		\int_incr:N \l_count_int
 	}

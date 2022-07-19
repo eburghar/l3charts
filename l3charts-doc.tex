@@ -19,12 +19,19 @@
   pdflang={en-GB}
 }
 
+% bold with appended %
+\NewDocumentCommand\textbfp{m}{\textbf{\percent{#1}}}
 % format label white on black
 \NewDocumentCommand\textinv{m}{\colorbox{black}{\textcolor{white}{#1}}}
 % bold red
 \NewDocumentCommand\redbf{m}{\textcolor{red!50}{\textbf{#1}}}
+\NewDocumentCommand\redbfp{m}{\textcolor{red!50}{\textbfp{#1}}}
 % bold white
-\NewDocumentCommand\whitebf{m}{\textcolor{white}{\textbf{#1}}}
+\NewDocumentCommand\whitebfp{m}{\textcolor{white}{\textbfp{#1}}}
+% tenth rate
+\ExplSyntaxOn
+\NewDocumentCommand\tenrate{m}{\int_eval:n{#1/10}/10}
+\ExplSyntaxOff
 
 % Start document
 \RecordChanges
@@ -415,7 +422,7 @@ All other options are passed to \env{tikzpicture}
     % closer to bar
     label-options={xshift=4mm},
     % show values
-    value-cs=whitebf,
+    value-cs=whitebfp,
     % bigger gap
     gap=1.5ex,
     % bar in red
@@ -508,7 +515,7 @@ All other options are passed to \env{tikzpicture}
     % below bubble
     label-pos=below,
     % show value
-    value-cs=whitebf,
+    value-cs=whitebfp,
     % bubble in red
     draw-options={
       draw=red!50,
@@ -531,7 +538,7 @@ All other options are passed to \env{tikzpicture}
     % label in bold
     label-cs=textbf,
     % show values
-    value-cs=whitebf,
+    value-cs=whitebfp,
     % to the right
     label-pos=right,
     % show max as dotted line
@@ -603,7 +610,7 @@ All other options are passed to \env{tikzpicture}
     % below radial,
     label-pos=below,
     % in red bold.
-    value-cs=redbf,
+    value-cs=redbfp,
     % ring is red
     draw-options={red!50},
     % disk is light red
@@ -621,8 +628,8 @@ All other options are passed to \env{tikzpicture}
 \begin{radialchart}[
     % stack radials vertically
     vertical,
-    % bold label
-    value-cs=textbf,
+    % label as tenth fraction
+    value-cs=tenrate,
     % to the right
     label-pos=right,
     % rect ring
@@ -665,10 +672,33 @@ Macro used to consume the first argument and do nothing
 \cs_set:Npn \nop #1 {}
 \end{minted}
 
+\DescribeMacro{percent}
+Macro used to append a percent to its argument
+
+\begin{minted}{latex}
+\cs_set:Npn \percent#1 {#1\%}
+\end{minted}
+
 \subsection{Examples}
 
 These macros are defined for the examples presented in this document and are not part of
 the module \pkg{l3charts.sty}.
+
+\DescribeMacro{textbfp}
+Macro used to format its argument as bold with appended \%
+
+\begin{minted}{latex}
+\NewDocumentCommand\textbfp{m}{\textbf{\percent{#1}}}
+\end{minted}
+
+\DescribeMacro{tenrate}
+Macro used to format its argument as fraction of ten
+
+\begin{minted}{latex}
+\ExplSyntaxOn
+\NewDocumentCommand\tenrate{m}{\int_eval:n{#1/10}/10}
+\ExplSyntaxOff
+\end{minted}
 
 \DescribeMacro{textinv}
 Macro used to format its argument as white text on black background
@@ -684,11 +714,25 @@ Macro used to format its argument as bold and red
 \NewDocumentCommand\redbf{m}{\textcolor{red!50}{\textbf{#1}}}
 \end{minted}
 
+\DescribeMacro{redbfp}
+Macro used to format its argument as bold and red with appended \%
+
+\begin{minted}{latex}
+\NewDocumentCommand\redbfp{m}{\textcolor{red!50}{\textbfp{#1}}}
+\end{minted}
+
 \DescribeMacro{whitebf}
 Macro used to format its argument as bold and white
 
 \begin{minted}{latex}
 \NewDocumentCommand\whitebf{m}{\textcolor{white}{\textbf{#1}}}
+\end{minted}
+
+\DescribeMacro{whitebfp}
+Macro used to format its argument as bold and white with appended \%
+
+\begin{minted}{latex}
+\NewDocumentCommand\whitebfp{m}{\textcolor{white}{\textbfp{#1}}}
 \end{minted}
 
 % \newpage
@@ -697,6 +741,9 @@ Macro used to format its argument as bold and white
 \section{Changes}
 
 \begin{History}
+
+\Version{0.5.1}{2022/07/19}
+\item remove hard coded \% in value.
 
 \Version{0.5.0}{2022/07/18}
 \item convert all \type{fp} to \type{dim} for usability
