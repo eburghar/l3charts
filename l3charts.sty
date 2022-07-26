@@ -1,5 +1,5 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{l3charts}[2022/07/26 0.6.0 Customizable tikz charts using latex3]
+\ProvidesPackage{l3charts}[2022/07/26 0.6.1 Customizable tikz charts using latex3]
 
 \RequirePackage{expl3}
 \RequirePackage{xparse}
@@ -22,15 +22,15 @@
 	\clist_clear_new:N \l_tikz_clist % properties for tikzpicture as keyval string
 	% keyval options for the environment
 	\keys_define:nn {kiviatchart} {
-		radius .tl_set:N  = \R, % maximal diagram radius
-		units  .int_set:N = \U, % number of scale units
+		radius  .tl_set:N  = \R, % maximal diagram radius
+		units   .int_set:N = \U, % number of scale units
 		% forward all other options to tikzpicture
-		unknown .code:n = {\prop_put:Nxx \l_tikz_prop {\l_keys_key_str} {##1}}
+		unknown .code:n    = {\prop_put:Nxx \l_tikz_prop {\l_keys_key_str} {##1}}
 	}
 	% set default environment options
 	\keys_set:nn {kiviatchart} {
-		radius        = 3.5cm,
-		units         = 5
+		radius = 3.5cm,
+		units  = 5
 	}
 	% override with given options if any
 	\IfValueT {#1} {\keys_set:nn {kiviatchart} {#1}}
@@ -65,7 +65,8 @@
 	\NewDocumentEnvironment {dims} {o} {
 		% keyval options for the environment
 		\keys_define:nn {kiviatchart_dims} {
-        	radius        .tl_set:N  = \L, % radius to put dimension labels
+        	radius        .tl_set:N  = \L,                 % radius to put dimension labels
+        	label-on      .int_set:N = \l_labelon_int,     % which dim axis to put labels on
 			dim-options   .tl_set:N  = \l_dimoptions_tl,   % options for dimensions axis
 			unit-options  .tl_set:N  = \l_unitoptions_tl,  % options for unit polygons
 			label-options .tl_set:N  = \l_labeloptions_tl, % options for unit labels
@@ -77,6 +78,7 @@
 		% set default environment options
 		\keys_set:nn {kiviatchart_dims} {
 			radius        = \R,
+			label-on      = 1,
 			dim-options   = {opacity=0.8},
 			unit-options  = {opacity=0.3},
 			label-options = {opacity=0.5,above,xshift=1.5mm},
@@ -96,34 +98,36 @@
 		\foreach \Y in {0,...,\U} {
 			% save positions as (D\X-\Y) with \X dimension in [1,\D] and \Y value in [0,\U]
 			\foreach \X in {1,...,\D} {
-    				\tl_set:Nx \l_tmpa_tl {\fp_to_decimal:n {\l_angle_fp+360-((\X-1)*360/\D)}};
-					\path (\l_tmpa_tl \c_colon_str \Y*\R/\U) coordinate (D\X-\Y);
-					% \fill (D\X-\Y) circle (1pt); % intersection points on the web
+    			\tl_set:Nx \l_tmpa_tl {\fp_to_decimal:n {\l_angle_fp+360-((\X-1)*360/\D)}};
+				\path (\l_tmpa_tl \c_colon_str \Y*\R/\U) coordinate (D\X-\Y);
+				% \fill (D\X-\Y) circle (1pt); % intersection points on the web
 			}
 			% draw units polygons
 			\exp_last_unbraced:Ne \draw {[\l_unitoptions_tl]} (D1-\Y) \foreach \X in {1,...,\D} {
-					-- (D\X-\Y)
+				-- (D\X-\Y)
 			} -- cycle;
 		}
 
 		% draw the dimensions axis
 		\foreach \X in {1,...,\D} {
 			\tl_set:Nx \l_tmpa_tl {\int_use:N \U};
-			\exp_last_unbraced:Ne \draw {[\l_dimoptions_tl]} (0,0) -- (D\X-\l_tmpa_tl);
+			\exp_last_unbraced:Ne \draw {[\l_dimoptions_tl]} (D\X-0) -- (D\X-\l_tmpa_tl);
 		}
 
 		% draw units labels
-		\foreach \Y in {1,...,\U} {
-    		\tl_set:Nx \l_tmpa_tl {\int_eval:n {\Y-1}}
-			\exp_last_unbraced:Ne \node {[\l_labeloptions_tl]} at (D2-\l_tmpa_tl) {\use:c {\l_unitcs_str} {\Y}};
-		}
+		\bool_if:nTF {\int_compare_p:n {\l_labelon_int >= 1} && \int_compare_p:n {\l_labelon_int <= \D}} {
+    		\foreach \Y in {1,...,\U} {
+        		\tl_set:Nx \l_tmpa_tl {\int_eval:n {\Y-1}}
+    			\exp_last_unbraced:Ne \node {[\l_labeloptions_tl]} at (D\int_use:N \l_labelon_int-\l_tmpa_tl) {\use:c {\l_unitcs_str} {\Y}};
+    		}
+		} {}
 
-		% draw labels for each dimension axis
-		\foreach \l [count=\X from 1] in \labels {
-    		\tl_set:Nx \l_tmpa_tl {\fp_to_decimal:n {\l_angle_fp+360-((\X-1)*360/\D)}};
-			\tl_set:Nx \l_tmpb_tl {\seq_item:Nn \l_labeloptions_seq {\X}}
-			\path (\l_tmpa_tl \c_colon_str \L) node [\l_tmpb_tl] {\use:c {\l_labelcs_str} {\l}};
-		}
+    	% draw labels for each dimension axis
+    	\foreach \l [count=\X from 1] in \labels {
+        	\tl_set:Nx \l_tmpa_tl {\fp_to_decimal:n {\l_angle_fp+360-((\X-1)*360/\D)}};
+    		\tl_set:Nx \l_tmpb_tl {\seq_item:Nn \l_labeloptions_seq {\X}}
+    		\path (\l_tmpa_tl \c_colon_str \L) node [\l_tmpb_tl] {\use:c {\l_labelcs_str} {\l}};
+    	}
 	}
 
 	% Environment for values set
@@ -134,9 +138,9 @@
 		\clist_clear_new:N \l_setoptions_clist % clist to get prop back to keyval str
 		% keyval options for the environment
 		\keys_define:nn {kiviatchart_set} {
-			dot-options  .tl_set:N = \l_dotoptions_tl, % options for polygon node
+			dot-options .tl_set:N = \l_dotoptions_tl, % options for polygon node
 			% forward all other options to tikz
-			unknown      .code:n = {\prop_put:Nxx \l_setoptions_prop {\l_keys_key_str} {####1}}
+			unknown     .code:n   = {\prop_put:Nxx \l_setoptions_prop {\l_keys_key_str} {####1}}
 		}
 		% set default options (exp_args to expand \c_space_tl)
 		\exp_args:Nnx \keys_set:nn {kiviatchart_set} {
@@ -315,15 +319,15 @@
 	\clist_clear_new:N \l_tikz_clist % properties for tikzpicture as keyval string
 	% keyval options for the environment
 	\keys_define:nn {bubblechart} {
-    	radius       .dim_set:N  = \l_radius_dim,      % max radius
-    	gap          .dim_set:N  = \l_gap_dim,         % gap between bubbles
-		fill-options .tl_set:N   = \l_filloptions_str, % TikZ options to draw the background with
-		draw-options .tl_set:N   = \l_drawoptions_str, % TikZ options to draw the bubble with
-		label-options .tl_set:N  = \l_labeloptions_tl, % TikZ options to draw the label with
-		label-cs     .str_set:N  = \l_labelcs_str,     % cs name to format labels with
-		label-pos    .str_set:N  = \l_labelpos_str,    % label position relative to bubble
-		value-cs     .str_set:N  = \l_valuecs_str,     % cs name to format values with
-		vertical     .bool_set:N = \l_vertical_bool,   % stack bubbles vertically
+    	radius        .dim_set:N  = \l_radius_dim,      % max radius
+    	gap           .dim_set:N  = \l_gap_dim,         % gap between bubbles
+		fill-options  .tl_set:N   = \l_filloptions_str, % TikZ options to draw the background with
+		draw-options  .tl_set:N   = \l_drawoptions_str, % TikZ options to draw the bubble with
+		label-options .tl_set:N   = \l_labeloptions_tl, % TikZ options to draw the label with
+		label-cs      .str_set:N  = \l_labelcs_str,     % cs name to format labels with
+		label-pos     .str_set:N  = \l_labelpos_str,    % label position relative to bubble
+		value-cs      .str_set:N  = \l_valuecs_str,     % cs name to format values with
+		vertical      .bool_set:N = \l_vertical_bool,   % stack bubbles vertically
 		% forward all other options to tikzpicture
 		unknown      .code:n   = {\prop_put:Nxx \l_tikz_prop {\l_keys_key_str} {##1}}
 	}

@@ -98,6 +98,10 @@ is comma separated list of keywords and values :
 \Describe{Option}{radius}{:dim}[=kiviatchart radius]
 Radius to put dimension labels on
 
+\Describe{Option}{label-on}{:int}[1]
+Dimension axis index (between 1 and number of dimensions) to put the labels on. In case of
+invalid value (0), the units labels are hidden.
+
 \Describe{Option}{dim-options}{:prop}[\{opacity=0.8\}]
 \TikZ{} options for drawing dimensions axis with
 
@@ -149,7 +153,9 @@ Use \key{label-cs} to call \cs{textinv} to format the labels.
 % scale is passed to tikzpicture
 \begin{kiviatchart}[scale=0.75]
   % Define all the dimensions
-  \begin{dims}[label-cs=textinv]
+  \begin{dims}[
+      label-cs=textinv,
+      label-on=2]
     % Specify placement of each
     % labels
     \value[above]{Dim 1}
@@ -177,18 +183,21 @@ Use \key{label-cs} to call \cs{textinv} to format the labels.
 \begin{example}
 % scale is passed to tikzpicture
 \begin{kiviatchart}[scale=0.75]
-  % bigger radius for the labels
-  \begin{dims}[radius=3.7cm]
+  \begin{dims}[
+      % bigger radius for labels
+      radius=3.7cm,
+      % hide unit labels
+      label-on=0]
     \value[above]{Dim 1}
     \value[right]{Dim 2}
     \value[below]{Dim 3}
     \value[below]{Dim 4}
     \value[left]{Dim 5}
   \end{dims}
-  % Fill this set in red
-  % with rectangle dots
+  % red set
   \begin{set}[
       fill=red,
+      % big rectangle dots
       dot-options={
         fill,rectangle,
         inner sep=2pt
@@ -199,10 +208,10 @@ Use \key{label-cs} to call \cs{textinv} to format the labels.
     \value{5}
     \value{2}
   \end{set}
-  % Fill this set in green
-  % with diamond dots
+  % green set
   \begin{set}[
       fill=green,
+      % big diamond dots
       dot-options={
         fill,diamond,
         inner sep=2pt
@@ -213,10 +222,10 @@ Use \key{label-cs} to call \cs{textinv} to format the labels.
     \value{4}
     \value{5}
   \end{set}
-  % Fill this set in blue
-  % with semicircle dots
+  % blue set
   \begin{set}[
       fill=blue,
+      % big semicircle dots
       dot-options={
         fill,semicircle,
         inner sep=2pt
@@ -746,6 +755,9 @@ Macro used to format its argument as bold and white with appended \%
 \section{Changes}
 
 \begin{History}
+
+\Version{0.6.1}{2022/07/26}
+\item add a \opt{label-on} option for \env{dims} of \env{kiviatchart}
 
 \Version{0.6.0}{2022/07/26}
 \item draw \env{kiviatchart} dimensions clockwise with a starting \opt{angle} of 90
