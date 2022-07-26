@@ -39,7 +39,7 @@
 
 \title{The \texttt{l3charts} package}
 \author{Éric BURGHARD}
-\date{2022/07/15}
+\date{2022/07/26}
 \def\githuburl{https://git.itsufficient.me/latex/l3charts}
 
 \begin{document}
@@ -81,9 +81,6 @@ is comma separated list of keywords and values :
 \Describe{Option}{radius}{:dim}[3.5cm]
 Maximal diagram radius
 
-\Describe{Option}{label-radius}{:dim}[3.5cm]
-Radius to put dimension labels on
-
 \Describe{Option}{units}{:int}[5]
 Set the scale of units from 0 to the given number
 
@@ -98,13 +95,16 @@ A \env{kiviatchart} should begin with a \env{dims}, followed by one or several \
 Environment that hold the definition of all dimensions. Accepts an optional argument \oarg{clist} which
 is comma separated list of keywords and values :
 
+\Describe{Option}{radius}{:dim}[=kiviatchart radius]
+Radius to put dimension labels on
+
 \Describe{Option}{dim-options}{:prop}[\{opacity=0.8\}]
 \TikZ{} options for drawing dimensions axis with
 
 \Describe{Option}{unit-options}{:prop}[\{opacity=0.3\}]
 \TikZ{} options for drawing unit polygons with
 
-\Describe{Option}{label-options}{:prop}[\{opacity=0.5,below\}]
+\Describe{Option}{label-options}{:prop}[\{opacity=0.5,above,xshift=1.5mm\}]
 \TikZ{} options drawing for unit labels
 
 \Describe{Option}{label-cs}{:str}[identity]
@@ -112,6 +112,9 @@ Name of the cs used to format labels
 
 \Describe{Option}{unit-cs}{:str}[tinytt]
 Name of the cs used to format unit scale
+
+\Describe{Option}{angle}{:fp}[90]
+Angle of the first dimension
 
 \DescribeMacro{value}
 \cs{value}\oarg{clist}\marg{label} is used to add a dimension to the kiviat chart. \oarg{clist} is
@@ -150,10 +153,10 @@ Use \key{label-cs} to call \cs{textinv} to format the labels.
     % Specify placement of each
     % labels
     \value[above]{Dim 1}
-    \value[above]{Dim 2}
-    \value[left]{Dim 3}
-    \value[right]{Dim 4}
-    \value[right]{Dim 5}
+    \value[right]{Dim 2}
+    \value[below]{Dim 3}
+    \value[below]{Dim 4}
+    \value[left]{Dim 5}
   \end{dims}
   % Add one or several sets.
   % Each value corresponds to
@@ -174,12 +177,13 @@ Use \key{label-cs} to call \cs{textinv} to format the labels.
 \begin{example}
 % scale is passed to tikzpicture
 \begin{kiviatchart}[scale=0.75]
-  \begin{dims}
+  % bigger radius for the labels
+  \begin{dims}[radius=3.7cm]
     \value[above]{Dim 1}
-    \value[above]{Dim 2}
-    \value[left]{Dim 3}
-    \value[right]{Dim 4}
-    \value[right]{Dim 5}
+    \value[right]{Dim 2}
+    \value[below]{Dim 3}
+    \value[below]{Dim 4}
+    \value[left]{Dim 5}
   \end{dims}
   % Fill this set in red
   % with rectangle dots
@@ -233,6 +237,7 @@ with error messages when theses rules are violated :
 
 \begin{itemize}
   \item one and only one \env{dims} declared before any \env{set}
+  \item at least 3 dimensions are declared
   \item all \env{set} have the same number of \cs{value} than the \env{dims}
   \item \cs{value} in \env{set} is between 0 and \key{units}
 \end{itemize}
@@ -676,7 +681,7 @@ Macro used to consume the first argument and do nothing
 Macro used to append a percent to its argument
 
 \begin{minted}{latex}
-\cs_set:Npn \percent#1 {#1\%}
+\cs_set:Npn \percent #1 {#1\%}
 \end{minted}
 
 \subsection{Examples}
@@ -741,6 +746,11 @@ Macro used to format its argument as bold and white with appended \%
 \section{Changes}
 
 \begin{History}
+
+\Version{0.6.0}{2022/07/26}
+\item draw \env{kiviatchart} dimensions clockwise with a starting \opt{angle} of 90
+\item allow value of 0 for \env{set}
+\item rename \opt{labels-radius} to \opt{radius} and move to \env{dims}
 
 \Version{0.5.1}{2022/07/19}
 \item remove hard coded \% in value.
