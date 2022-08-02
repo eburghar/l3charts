@@ -27,6 +27,7 @@
 \NewDocumentCommand\redbf{m}{\textcolor{red!50}{\textbf{#1}}}
 \NewDocumentCommand\redbfp{m}{\textcolor{red!50}{\textbfp{#1}}}
 % bold white
+\NewDocumentCommand\whitebf{m}{\textcolor{white}{\textbf{#1}}}
 \NewDocumentCommand\whitebfp{m}{\textcolor{white}{\textbfp{#1}}}
 % tenth rate
 \ExplSyntaxOn
@@ -39,7 +40,7 @@
 
 \title{The \texttt{l3charts} package}
 \author{Éric BURGHARD}
-\date{2022/07/26}
+\date{2022/08/01}
 \def\githuburl{https://git.itsufficient.me/latex/l3charts}
 
 \begin{document}
@@ -287,7 +288,7 @@ Macro name to format labels
 Macro name to format labels
 
 \Describe{Option}{label-pos}{:str}[left]
-Position of the label
+Position of the label. Should be \texttt{left}, \texttt{right}, \texttt{above}, \texttt{below}, \texttt{above right}, \texttt{above left}, \texttt{below right} or  \texttt{below left}
 
 \Describe{Option}{value-cs}{:str}[nop]
 cs name to format values with
@@ -382,7 +383,7 @@ Gap between bars
 Macro name to format labels
 
 \Describe{Option}{label-pos}{:str}[left]
-Position of the label
+Position of the label. Should be \texttt{left}, \texttt{right}, \texttt{above}, \texttt{below}, \texttt{above right}, \texttt{above left}, \texttt{below right} or  \texttt{below left}
 
 \Describe{Option}{value-cs}{:str}[nop]
 cs name to format values with
@@ -480,7 +481,7 @@ Gap between bubbles
 Macro name to format labels
 
 \Describe{Option}{label-pos}{:str}[above]
-Position of the label
+Position of the label. Should be \texttt{left}, \texttt{right}, \texttt{above}, \texttt{below}, \texttt{above right}, \texttt{above left}, \texttt{below right} or  \texttt{below left}
 
 \Describe{Option}{value-cs}{:str}[nop]
 cs name to format values with
@@ -498,7 +499,7 @@ All other options are passed to \env{tikzpicture}
 
 \subsubsection{Horizontal}
 
-\begin{example}
+\begin{example} 
 \begin{bubblechart}
   \value{Dim 1}{80}
   \value{Dim 2}{90}
@@ -518,10 +519,10 @@ All other options are passed to \env{tikzpicture}
       draw=black!30}]
   \value{Dim 1}{80}
   \value{Dim 2}{90}
-  \value{Dim 3}{50}
+  \value{Dim 31}{50}
 \end{bubblechart}
 \end{example}
-
+ 
 \begin{example}
 \begin{bubblechart}[
     % label in red
@@ -593,7 +594,7 @@ Gap between radials
 cs name to format labels with
 
 \Describe{Option}{label-pos}{:str}[above]
-Label position relative to radial
+Position of the label. Should be \texttt{left}, \texttt{right}, \texttt{above}, \texttt{below}, \texttt{above right}, \texttt{above left}, \texttt{below right} or  \texttt{below left}
 
 \Describe{Option}{value-cs}{:str}[identity]
 cs name to format values with
@@ -615,7 +616,6 @@ All other options are passed to \env{tikzpicture}
   \value{Dim 3}{50}
 \end{radialchart}
 \end{example}
-
 
 \begin{example}
 \begin{radialchart}[
@@ -646,8 +646,10 @@ All other options are passed to \env{tikzpicture}
     value-cs=tenrate,
     % to the right
     label-pos=right,
-    % rect ring
-    line cap=rect,
+    % thicker line
+    line-width=3mm,
+    % with rect end
+    line cap=butt,
     % same color for disk and ring
     fill-options={
       draw=black!10,
@@ -656,6 +658,86 @@ All other options are passed to \env{tikzpicture}
   \value{Dim 2}{90}
   \value{Dim 3}{50}
 \end{radialchart}
+\end{example}
+
+\section{Circle chart}
+
+\subsection{Usage}
+
+\DescribeEnv{circlechart}
+Environment that hold a circle chart. Accepts an optional argument \oarg{clist} which
+is comma separated list of keywords and values :
+
+\Describe{Option}{radius}{:dim}[1cm]
+Max radius
+
+\Describe{Option}{gap}{:dim}[2.5ex]
+Gap between radials
+
+\Describe{Option}{line-width}{:dim}[4mm]
+Line width to draw the circles with
+
+\Describe{Option}{fill-options}{:prop}[\{fill=none,draw=black!10\}]
+\TikZ{} options to fill/draw the center of the radial with
+
+\Describe{Option}{draw-options}{:prop}[black]
+\TikZ{} options to draw the radial with
+
+\Describe{Option}{label-options}{:prop}[\{\}]
+\TikZ{} options drawing for unit labels
+
+\Describe{Option}{label-cs}{:str}[identity]
+cs name to format labels with
+
+\Describe{Option}{label-pos}{:str}[right]
+Label position relative to radial. Should be \texttt{left} \texttt{center} or \texttt{right}
+
+\Describe{Option}{value-cs}{:str}[identity]
+cs name to format values with
+
+\Describe{Option}{vertical}{:bool}[false]
+Stack radials vertically instead of horizontally
+
+\Describe{Option}{*}{:keyval}[line width=2mm,line cap=round]
+All other options are passed to \env{tikzpicture}
+
+\subsection{Examples}
+
+\subsubsection{Simple}
+
+\begin{example}
+\begin{circlechart}
+  \value{Dim 1}{100}
+  \value{Dim 2}{90}
+  \value{Dim 3}{60}
+  \value{Dim 4}{45}
+\end{circlechart}
+\end{example}
+
+\subsubsection{Colorful}
+
+\begin{example}
+\begin{circlechart}[
+    % bigger radius,
+    radius=2.5cm,
+    % and gap
+    gap=1.5mm,
+    % show values
+    value-cs=whitebf,
+    % at 30°
+    value-angle=30,
+    % centered labels
+    label-pos=center,
+    % thicker line width,
+    line-width=4.5mm,
+    % with square end
+    line cap=butt]
+  % each ring has its own color
+  \value[blue!50]{Dim 1}{100}
+  \value[cyan!50]{Dim 2}{90}
+  \value[purple!50]{Dim 3}{60}
+  \value[red!50]{Dim 4}{45}
+\end{circlechart}
 \end{example}
 
 \section{Macros}
@@ -755,6 +837,10 @@ Macro used to format its argument as bold and white with appended \%
 \section{Changes}
 
 \begin{History}
+
+\Version{0.7.0}{2022/08/01}
+\item add a \env{circlechart}
+\item use choice to restrict values on several keys (\opt{label-pos})
 
 \Version{0.6.1}{2022/07/26}
 \item add a \opt{label-on} option for \env{dims} of \env{kiviatchart}
