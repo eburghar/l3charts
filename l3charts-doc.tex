@@ -288,7 +288,8 @@ Macro name to format labels
 Macro name to format labels
 
 \Describe{Option}{label-pos}{:str}[left]
-Position of the label. Should be \texttt{left}, \texttt{right}, \texttt{above}, \texttt{below}, \texttt{above right}, \texttt{above left}, \texttt{below right} or  \texttt{below left}
+Position of the label. Should be \texttt{left}, \texttt{right}, \texttt{above}, \texttt{below},
+\texttt{above right}, \texttt{above left}, \texttt{below right} or  \texttt{below left}
 
 \Describe{Option}{value-cs}{:str}[nop]
 cs name to format values with
@@ -383,7 +384,8 @@ Gap between bars
 Macro name to format labels
 
 \Describe{Option}{label-pos}{:str}[left]
-Position of the label. Should be \texttt{left}, \texttt{right}, \texttt{above}, \texttt{below}, \texttt{above right}, \texttt{above left}, \texttt{below right} or  \texttt{below left}
+Position of the label. Should be \texttt{left}, \texttt{right}, \texttt{above}, \texttt{below},
+\texttt{above right}, \texttt{above left}, \texttt{below right} or  \texttt{below left}
 
 \Describe{Option}{value-cs}{:str}[nop]
 cs name to format values with
@@ -581,6 +583,9 @@ Max radius
 \Describe{Option}{gap}{:dim}[2.5ex]
 Gap between radials
 
+\Describe{Option}{line width}{:dim}[3mm]
+Line width to draw the radials with
+
 \Describe{Option}{fill-options}{:prop}[\{fill=none,draw=black!10\}]
 \TikZ{} options to fill/draw the center of the radial with
 
@@ -594,7 +599,8 @@ Gap between radials
 cs name to format labels with
 
 \Describe{Option}{label-pos}{:str}[above]
-Position of the label. Should be \texttt{left}, \texttt{right}, \texttt{above}, \texttt{below}, \texttt{above right}, \texttt{above left}, \texttt{below right} or  \texttt{below left}
+Position of the label. Should be \texttt{left}, \texttt{right}, \texttt{above}, \texttt{below},
+\texttt{above right}, \texttt{above left}, \texttt{below right} or  \texttt{below left}
 
 \Describe{Option}{value-cs}{:str}[identity]
 cs name to format values with
@@ -602,7 +608,7 @@ cs name to format values with
 \Describe{Option}{vertical}{:bool}[false]
 Stack radials vertically instead of horizontally
 
-\Describe{Option}{*}{:keyval}[line width=2mm,line cap=round]
+\Describe{Option}{*}{:keyval}[line cap=round]
 All other options are passed to \env{tikzpicture}
 
 \subsection{Examples}
@@ -647,7 +653,7 @@ All other options are passed to \env{tikzpicture}
     % to the right
     label-pos=right,
     % thicker line
-    line-width=3mm,
+    line width=3.5mm,
     % with rect end
     line cap=butt,
     % same color for disk and ring
@@ -660,28 +666,28 @@ All other options are passed to \env{tikzpicture}
 \end{radialchart}
 \end{example}
 
-\section{Circle chart}
+\section{Arc chart}
 
 \subsection{Usage}
 
-\DescribeEnv{circlechart}
-Environment that hold a circle chart. Accepts an optional argument \oarg{clist} which
+\DescribeEnv{arcchart}
+Environment that hold an arc chart. Accepts an optional argument \oarg{clist} which
 is comma separated list of keywords and values :
 
 \Describe{Option}{radius}{:dim}[1cm]
-Max radius
+Radius of outer arc
 
 \Describe{Option}{gap}{:dim}[2.5ex]
-Gap between radials
+Gap between arcs
 
-\Describe{Option}{line-width}{:dim}[4mm]
-Line width to draw the circles with
+\Describe{Option}{line width}{:dim}[4mm]
+Line width to draw the arc with
 
 \Describe{Option}{fill-options}{:prop}[\{fill=none,draw=black!10\}]
-\TikZ{} options to fill/draw the center of the radial with
+\TikZ{} options to fill/draw the background of the arcs with
 
 \Describe{Option}{draw-options}{:prop}[black]
-\TikZ{} options to draw the radial with
+\TikZ{} options to draw the arcs with
 
 \Describe{Option}{label-options}{:prop}[\{\}]
 \TikZ{} options drawing for unit labels
@@ -690,15 +696,18 @@ Line width to draw the circles with
 cs name to format labels with
 
 \Describe{Option}{label-pos}{:str}[right]
-Label position relative to radial. Should be \texttt{left} \texttt{center} or \texttt{right}
+Label position relative to radial. Should be \texttt{left}, \texttt{center} or \texttt{right}
 
-\Describe{Option}{value-cs}{:str}[identity]
+\Describe{Option}{value-options}{:prop}[{}]
+\TikZ{} options to draw values with
+
+\Describe{Option}{value-cs}{:str}[nop]
 cs name to format values with
 
-\Describe{Option}{vertical}{:bool}[false]
-Stack radials vertically instead of horizontally
+\Describe{Option}{value-angle}{:fp}[90]
+Angle at which to draw the values
 
-\Describe{Option}{*}{:keyval}[line width=2mm,line cap=round]
+\Describe{Option}{*}{:keyval}[line cap=round]
 All other options are passed to \env{tikzpicture}
 
 \subsection{Examples}
@@ -706,18 +715,18 @@ All other options are passed to \env{tikzpicture}
 \subsubsection{Simple}
 
 \begin{example}
-\begin{circlechart}
+\begin{arcchart}
   \value{Dim 1}{100}
   \value{Dim 2}{90}
   \value{Dim 3}{60}
   \value{Dim 4}{45}
-\end{circlechart}
+\end{arcchart}
 \end{example}
 
 \subsubsection{Colorful}
 
 \begin{example}
-\begin{circlechart}[
+\begin{arcchart}[
     % bigger radius,
     radius=2.5cm,
     % and gap
@@ -729,7 +738,7 @@ All other options are passed to \env{tikzpicture}
     % centered labels
     label-pos=center,
     % thicker line width,
-    line-width=4.5mm,
+    line width=4.5mm,
     % with square end
     line cap=butt]
   % each ring has its own color
@@ -737,7 +746,7 @@ All other options are passed to \env{tikzpicture}
   \value[cyan!50]{Dim 2}{90}
   \value[purple!50]{Dim 3}{60}
   \value[red!50]{Dim 4}{45}
-\end{circlechart}
+\end{arcchart}
 \end{example}
 
 \section{Macros}
@@ -839,8 +848,10 @@ Macro used to format its argument as bold and white with appended \%
 \begin{History}
 
 \Version{0.7.0}{2022/08/01}
-\item add a \env{circlechart}
-\item use choice to restrict values on several keys (\opt{label-pos})
+\item add a \env{arcchart}
+\item rename \opt{line-width} to \opt{line width} for consistency with \TikZ
+\item use choice to restrict values on \opt{label-pos}
+\item remove spurious ; and replace \texttt{c\_space\_tl} by \textasciitilde
 
 \Version{0.6.1}{2022/07/26}
 \item add a \opt{label-on} option for \env{dims} of \env{kiviatchart}
