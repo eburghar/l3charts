@@ -299,3 +299,4 @@ TSWLatexianTemp*
 *.glstex
 
 build/
+.latexmkrc

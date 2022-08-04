@@ -44,14 +44,14 @@
 \def\githuburl{https://git.itsufficient.me/latex/l3charts}
 
 \begin{document}
-\newgeometry{scale={0.8,0.9},top=1cm} % title page is centered
+\newgeometry{scale={0.8,0.9},top=2cm} % title page is centered
 \maketitle
 \thispagestyle{empty}
 \begin{abstract}
   This package defines a few simple \TikZ{} charts that can be drawn using \LaTeX{}
   environments. This has mainly been developed as an experimentation of \texttt{expl3}
   for checking what \LaTeX3 really brought to facilitate package development (expansion
-  control, seq, prop, keys, int, bool, fp, dim, ...).
+  control, seq, prop, keys, int, bool, fp, dim, msg, ...).
 \end{abstract}
 \tableofcontents
 \newpage
@@ -65,8 +65,25 @@ is just an ugly hack that turns the code and the documentation unmaintainable, a
 the component of \LaTeX{} which aged the most.
 
 So I chose to write the documentation separately and borrowed much of the style from the
-\href{https://github.com/schlcht/microtype}{\pkg{microtype}} package which by the way, pushes
-the \pkg{docstrip} mastery to a \emph{black magic} level.
+\href{https://github.com/schlcht/microtype}{\pkg{microtype}} package which by the way (if you
+are still curious about it), pushes the \pkg{docstrip} mastery to a \emph{black magic} level.
+
+\section{Motivation}
+
+This package has been developed mainly to typeset a fancy résumé but perhaps it could be
+used in other contexts too. I didn't want to write \TikZ{} charts directly in the document
+as it would have turned a simple typesetting file in an unreadable document, and I would have
+forgotten every details after just a few months.
+
+I wouldn't have the patience to develop this with \LaTeX{} or \TeX{} either, but I was curious
+enough about \pkg{expl3} to try an implementation. You should probably take this package as a
+rough tutorial on how to develop with \pkg{expl3} because it uses nearly all the types defined
+in the reference documentation (expansion control, seq, prop, keys, int, bool, fp, dim, msg,
+...) in straightforward ways.
+
+\TeX{} will always be that dusty tech you can't ignore because but there are so many (unmatched)
+packages coming from academic circles, but \pkg{expl3} gives a touch of modernity and facilitates
+a lot package development by allowing to easily bridge \TeX{} packages (here \LaTeX{} and \TikZ).
 
 \section{Kiviat chart}
 
@@ -96,7 +113,7 @@ A \env{kiviatchart} should begin with a \env{dims}, followed by one or several \
 Environment that hold the definition of all dimensions. Accepts an optional argument \oarg{clist} which
 is comma separated list of keywords and values :
 
-\Describe{Option}{radius}{:dim}[=kiviatchart radius]
+\Describe{Option}{radius}{:dim}[\env{kiviatchart} \opt{radius}]
 Radius to put dimension labels on
 
 \Describe{Option}{label-on}{:int}[1]
@@ -143,19 +160,19 @@ All other options are passed to \cs{draw} cs which draws the polygon
 There must be the same number of \cs{value} inside \env{set} and \env{dims}, and each \cs{value}
 corresponds to the dimension in \env{dims} at the same index.
 
+\newpage
 \subsection{Examples}
 
 \subsubsection{Simple}
 
-Use \key{label-cs} to call \cs{textinv} to format the labels.
-
-
 \begin{example}
 % scale is passed to tikzpicture
 \begin{kiviatchart}[scale=0.75]
-  % Define all the dimensions
+  % Define the dimensions
   \begin{dims}[
+      % inverted labels
       label-cs=textinv,
+      % value scale on dim2 axis
       label-on=2]
     % Specify placement of each
     % labels
@@ -165,16 +182,15 @@ Use \key{label-cs} to call \cs{textinv} to format the labels.
     \value[below]{Dim 4}
     \value[left]{Dim 5}
   \end{dims}
-  % Add one or several sets.
-  % Each value corresponds to
-  % the dimension at the same
-  % index in dims
+
+  % Add least one set should
+  % be defined.
   \begin{set}
-    \value{4}
-    \value{3}
-    \value{4}
-    \value{5}
-    \value{3}
+    \value{4} % Dim 1
+    \value{3} % Dim 2
+    \value{4} % Dim 3
+    \value{5} % Dim 4
+    \value{3} % Dim 5
   \end{set}
 \end{kiviatchart}
 \end{example}
@@ -182,9 +198,8 @@ Use \key{label-cs} to call \cs{textinv} to format the labels.
 \subsubsection{Multi-set}
 
 \begin{example}
-% scale is passed to tikzpicture
 \begin{kiviatchart}[scale=0.75]
-  \begin{dims}[
+\begin{dims}[
       % bigger radius for labels
       radius=3.7cm,
       % hide unit labels
@@ -195,47 +210,47 @@ Use \key{label-cs} to call \cs{textinv} to format the labels.
     \value[below]{Dim 4}
     \value[left]{Dim 5}
   \end{dims}
-  % red set
-  \begin{set}[
+ 
+  \begin{set}[% red set
       fill=red,
       % big rectangle dots
       dot-options={
         fill,rectangle,
         inner sep=2pt
       }]
-    \value{4}
-    \value{3}
-    \value{4}
-    \value{5}
-    \value{2}
+    \value{4} % Dim 1
+    \value{3} % Dim 2
+    \value{4} % Dim 3
+    \value{5} % Dim 4
+    \value{2} % Dim 5
   \end{set}
-  % green set
-  \begin{set}[
+  
+  \begin{set}[% green set
       fill=green,
       % big diamond dots
       dot-options={
         fill,diamond,
         inner sep=2pt
       }]
-    \value{2}
-    \value{4}
-    \value{3}
-    \value{4}
-    \value{5}
+    \value{2} % Dim 1
+    \value{4} % Dim 2
+    \value{3} % Dim 3
+    \value{4} % Dim 4
+    \value{5} % Dim 5
   \end{set}
-  % blue set
-  \begin{set}[
+  
+  \begin{set}[% blue set
       fill=blue,
       % big semicircle dots
       dot-options={
         fill,semicircle,
         inner sep=2pt
       }]
-    \value{5}
-    \value{2}
-    \value{4}
-    \value{3}
-    \value{4}
+    \value{5} % Dim 1
+    \value{2} % Dim 2
+    \value{4} % Dim 3
+    \value{3} % Dim 4
+    \value{4} % Dim 5
   \end{set}
 \end{kiviatchart}
 \end{example}
@@ -288,8 +303,13 @@ Macro name to format labels
 Macro name to format labels
 
 \Describe{Option}{label-pos}{:str}[left]
-Position of the label. Should be \texttt{left}, \texttt{right}, \texttt{above}, \texttt{below},
-\texttt{above right}, \texttt{above left}, \texttt{below right} or  \texttt{below left}
+Position of the label. Possible values :
+\begin{itemize}
+	\item \texttt{left}, \texttt{right}
+	\item \texttt{above}, \texttt{below}
+	\item \texttt{above right}, \texttt{above left}
+	\item \texttt{below right}, \texttt{below left}
+\end{itemize}
 
 \Describe{Option}{value-cs}{:str}[nop]
 cs name to format values with
@@ -384,8 +404,13 @@ Gap between bars
 Macro name to format labels
 
 \Describe{Option}{label-pos}{:str}[left]
-Position of the label. Should be \texttt{left}, \texttt{right}, \texttt{above}, \texttt{below},
-\texttt{above right}, \texttt{above left}, \texttt{below right} or  \texttt{below left}
+Position of the label. Possible values :
+\begin{itemize}
+	\item \texttt{left}, \texttt{right}
+	\item \texttt{above}, \texttt{below}
+	\item \texttt{above right}, \texttt{above left}
+	\item \texttt{below right}, \texttt{below left}
+\end{itemize}
 
 \Describe{Option}{value-cs}{:str}[nop]
 cs name to format values with
@@ -483,7 +508,13 @@ Gap between bubbles
 Macro name to format labels
 
 \Describe{Option}{label-pos}{:str}[above]
-Position of the label. Should be \texttt{left}, \texttt{right}, \texttt{above}, \texttt{below}, \texttt{above right}, \texttt{above left}, \texttt{below right} or  \texttt{below left}
+Position of the label. Possible values :
+\begin{itemize}
+	\item \texttt{left}, \texttt{right}
+	\item \texttt{above}, \texttt{below}
+	\item \texttt{above right}, \texttt{above left}
+	\item \texttt{below right}, \texttt{below left}
+\end{itemize}
 
 \Describe{Option}{value-cs}{:str}[nop]
 cs name to format values with
@@ -599,8 +630,13 @@ Line width to draw the radials with
 cs name to format labels with
 
 \Describe{Option}{label-pos}{:str}[above]
-Position of the label. Should be \texttt{left}, \texttt{right}, \texttt{above}, \texttt{below},
-\texttt{above right}, \texttt{above left}, \texttt{below right} or  \texttt{below left}
+Position of the label. Possible values :
+\begin{itemize}
+	\item \texttt{left}, \texttt{right}
+	\item \texttt{above}, \texttt{below}
+	\item \texttt{above right}, \texttt{above left}
+	\item \texttt{below right}, \texttt{below left}
+\end{itemize}
 
 \Describe{Option}{value-cs}{:str}[identity]
 cs name to format values with
@@ -696,7 +732,12 @@ Line width to draw the arc with
 cs name to format labels with
 
 \Describe{Option}{label-pos}{:str}[right]
-Label position relative to radial. Should be \texttt{left}, \texttt{center} or \texttt{right}
+Label position relative to radial. Possible values :
+\begin{itemize}
+	\item \texttt{left}
+	\item \texttt{right}
+	\item \texttt{center}
+\end{itemize}
 
 \Describe{Option}{value-options}{:prop}[{}]
 \TikZ{} options to draw values with
