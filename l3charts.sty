@@ -6,6 +6,8 @@
 \RequirePackage{tikz}
 \usetikzlibrary{shapes, shapes.misc, backgrounds, calc, fit, positioning}
 
+\usepackage{tcolorbox}
+
 \ExplSyntaxOn
 \makeatletter % to access latex2e variables
 
@@ -507,16 +509,6 @@
 		draw-options  .tl_set:N   = \l_drawoptions_tl,  % TikZ options to draw the arcs with
 		label-options .tl_set:N   = \l_labeloptions_tl, % TikZ options to draw the label with
 		label-cs      .str_set:N  = \l_labelcs_str,     % cs name to format labels with
-		% label position relative in the horizontal box
-		label-pos     .choices:nn =
-			{left, center, right}
-			{\exp_args:NNe \str_set:Nn \l_labelpos_str {\str_head:N \l_keys_choice_tl}},
-		label-pos / unknown .code:n = { 
-			\msg_error:nnxxx { l3charts } { unknown-choice }
-				{ label-pos } % Name of choice key
-				{ left, right, center } % Valid choices
-				{ ##1 } % Invalid choice given
-		},
 		value-options .tl_set:N   = \l_valueoptions_tl, % TikZ options to draw values with
 		value-cs      .str_set:N  = \l_valuecs_str,     % cs name to format values with
 		value-angle   .fp_set:N   = \l_valueangle_fp,   % value angle
@@ -532,7 +524,6 @@
 		draw-options  = black,
 		label-options = {left},
 		label-cs      = identity,
-		label-pos     = right,
 		value-options = {},
 		value-cs      = nop,
 		value-angle   = 90,
@@ -562,8 +553,8 @@
 
 		\exp_last_unbraced:Ne \centerarc {[\l_filloptions_tl]} (0,0) (90,90-270,\l_tmpa_dim);
 		\exp_last_unbraced:Ne \centerarc {[##1]} (0,0) (90,\l_tmpa_tl,\l_tmpa_dim);
-		\exp_last_unbraced:Ne \node {[\l_valueoptions_tl]} at (\fp_use:N \l_valueangle_fp \c_colon_str \l_tmpa_dim) {\use:c {\l_valuecs_str} {\fontsize{0.5\l_linewidth_dim}{0.5\l_linewidth_dim}\selectfont##3}};
-		\exp_last_unbraced:Ne \node {[\l_labeloptions_tl]} at (90 \c_colon_str \l_tmpa_dim) {\makebox[\l_radius_dim][\l_labelpos_str]{\use:c {\l_labelcs_str} {\fontsize{\l_linewidth_dim}{\l_linewidth_dim}\selectfont##2 }}};
+		\exp_last_unbraced:Ne \node {[\l_valueoptions_tl]} at (\fp_use:N \l_valueangle_fp \c_colon_str \l_tmpa_dim) {\fontsize{0.5\l_linewidth_dim}{0.5\l_linewidth_dim}\selectfont\use:c {\l_valuecs_str} {##3}};
+		\exp_last_unbraced:Ne \node {[\l_labeloptions_tl]} at (90 \c_colon_str \l_tmpa_dim) {\fontsize{\l_linewidth_dim}{\l_linewidth_dim}\selectfont\use:c {\l_labelcs_str} {##2}};
 		\int_incr:N \l_count_int
 	}
 	% start a picture (expand option before begin)

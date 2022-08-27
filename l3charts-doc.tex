@@ -4,7 +4,9 @@
 % setup 
 \hypersetup{
   keeppdfinfo,
-  pdftitle={The l3charts package},
+  pdftitle={l3charts},
+  pdfsubtitle={The LaTeX package},
+  pdfversionid=0.7.0,
   pdfauthor={Éric BURGHARD},
   pdfcontactemail={ctan@itsufficient.me},
   pdfcontacturl={https://itsufficient.me},
@@ -110,8 +112,8 @@ A \env{kiviatchart} should begin with a \env{dims}, followed by one or several \
 \subsubsection{Dimensions}
 
 \DescribeEnv{dims}
-Environment that hold the definition of all dimensions. Accepts an optional argument \oarg{clist} which
-is comma separated list of keywords and values :
+Environment that hold the definition of all dimensions. Accepts an optional argument \oarg{clist}
+which is comma separated list of keywords and values :
 
 \Describe{Option}{radius}{:dim}[\env{kiviatchart} \opt{radius}]
 Radius to put dimension labels on
@@ -145,8 +147,8 @@ passed to \TikZ{} to draw the nodes corresponding to the labels.
 \subsubsection{Set}
 
 \DescribeEnv{set}
-\env{set} is used to add a new set to the kiviat chart. Accepts an optional argument \oarg{clist} which
-is comma separated list of keywords and values :
+\env{set} is used to add a new set to the kiviat chart. Accepts an optional argument \oarg{clist}
+which is comma separated list of keywords and values :
 
 \Describe{Option}{dot-options}{:prop}[\{fill,circle,inner~sep=1pt\}]
 Options for polygon node
@@ -272,8 +274,8 @@ with error messages when theses rules are violated :
 \subsection{Usage}
 
 \DescribeEnv{ballchart}
-Environment that hold a ball chart. Accepts an optional argument \oarg{clist} which
-is comma separated list of keywords and values :
+Environment that hold a ball chart. Accepts an optional argument \oarg{clist} which is comma
+separated list of keywords and values :
 
 \Describe{Option}{n}{:int}[5]
 The number of circles per bar
@@ -379,8 +381,8 @@ All other options are passed to \env{tikzpicture}
 \subsection{Usage}
 
 \DescribeEnv{barchart}
-Environment that hold a bar chart. Accepts an optional argument \oarg{clist} which
-is comma separated list of keywords and values :
+Environment that hold a bar chart. Accepts an optional argument \oarg{clist} which is comma
+separated list of keywords and values :
 
 \Describe{Option}{width}{:dim}[3cm]
 Maximum width
@@ -731,14 +733,6 @@ Line width to draw the arc with
 \Describe{Option}{label-cs}{:str}[identity]
 cs name to format labels with
 
-\Describe{Option}{label-pos}{:str}[right]
-Label position relative to radial. Possible values :
-\begin{itemize}
-	\item \texttt{left}
-	\item \texttt{right}
-	\item \texttt{center}
-\end{itemize}
-
 \Describe{Option}{value-options}{:prop}[{}]
 \TikZ{} options to draw values with
 
@@ -776,8 +770,6 @@ All other options are passed to \env{tikzpicture}
     value-cs=whitebf,
     % at 30°
     value-angle=30,
-    % centered labels
-    label-pos=center,
     % thicker line width,
     line width=4.5mm,
     % with square end
@@ -921,7 +913,8 @@ for consistency
 \item swap \opt{fill-options} and \opt{draw-options} for \env{bubblechart} for consistency
 
 \Version{0.2.0}{2022/07/04}
-\item define a document class borrowed from \href{https://github.com/schlcht/microtype}{\pkg{microtype}}
+\item define a document class borrowed from
+\href{https://github.com/schlcht/microtype}{\pkg{microtype}}
 
 \Version{0.1.0}{2022/07/01}
 \item Initial version
