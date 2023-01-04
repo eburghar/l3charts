@@ -19,11 +19,8 @@
 \usepackage{fontspec}
 \usepackage[default]{raleway}
 % you need a license for this (https://www.monolisa.dev)
-\setmonofont{MonoLisa_Regular}[
-	ItalicFont=MonoLisa_RegularItalic,
+\setmonofont{MonoLisa}[
 	ItalicFeatures={StylisticSet=2},
-	BoldFont=MonoLisa_Bold,
-	BoldItalicFont=MonoLisa_BoldItalic,
 	BoldItalicFeatures={StylisticSet=2},
 	Scale=MatchLowercase]
 

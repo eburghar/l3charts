@@ -28,24 +28,27 @@
 
 % error messages
 \msg_new:nnn {l3charts} {unknown-choice} {#1\ key value should\ be\ among\ #2\ but\ "#3"\ was\ given}
+\msg_new:nnn {l3charts} {debug} {debug: #1}
 
 % Environment to draw kiviat charts
-% Inside kiviatchar environement at least one dims environment must be defined
+% Inside kiviatchar environment at least one dims environment must be defined
 % followed by one or more set environment
 \NewDocumentEnvironment {kiviatchart} {o} {
 	\prop_clear_new:N \l_tikz_prop % properties for tikzpicture
 	\clist_clear_new:N \l_tikz_clist % properties for tikzpicture as keyval string
 	% keyval options for the environment
 	\keys_define:nn {kiviatchart} {
-		radius  .tl_set:N  = \R, % maximal diagram radius
-		units   .int_set:N = \U, % number of scale units
+		radius  .tl_set:N   = \R, % maximal diagram radius
+		units   .int_set:N  = \U, % number of scale units
 		% forward all other options to tikzpicture
-		unknown .code:n    = {\prop_put:Nxx \l_tikz_prop {\l_keys_key_str} {##1}}
+		unknown .code:n     = {\prop_put:Nxx \l_tikz_prop {\l_keys_key_str} {##1}},
+		rounded .bool_set:N = \l_rounded_bool,   % use circles and curves instead of polygons
 	}
 	% set default environment options
 	\keys_set:nn {kiviatchart} {
 		radius = 3.5cm,
-		units  = 5
+		units  = 5,
+		rounded = false
 	}
 	% override with given options if any
 	\IfValueT {#1} {\keys_set:nn {kiviatchart} {#1}}
@@ -117,10 +120,14 @@
 				\path (\l_tmpa_tl \c_colon_str \Y*\R/\U) coordinate (D\X-\Y);
 				% \fill (D\X-\Y) circle (1pt); % intersection points on the web
 			}
-			% draw units polygons
-			\exp_last_unbraced:Ne \draw {[\l_unitoptions_tl]} (D1-\Y) \foreach \X in {1,...,\D} {
-				-- (D\X-\Y)
-			} -- cycle;
+			\bool_if:nTF {\l_rounded_bool} {
+				\exp_last_unbraced:Ne \draw {[\l_unitoptions_tl]} (0,0) circle (\Y*\R/\U);
+			} {
+				% draw units polygons
+				\exp_last_unbraced:Ne \draw {[\l_unitoptions_tl]} (D1-\Y) \foreach \X in {1,...,\D} {
+					-- (D\X-\Y)
+				} -- cycle;
+			}
 		}
 
 		% draw the dimensions axis
@@ -185,8 +192,17 @@
 			\exp_last_unbraced:Ne \node {[\l_dotoptions_tl]} at (D\i-\v) {};
 		}
 
-		% polygon formed by values on dim axis
-		\exp_last_unbraced:Ne \draw {[\l_setoptions_str]} (D1-\firstval) foreach \v [count=\i from 1] in \values {-- (D\i-\v)} -- cycle;
+		\bool_if:nTF {\l_rounded_bool} {
+			% closed curve going through all the coordinates
+			% construct the coordinates string (space separated list of defined coordinates)
+			\str_new:N \l_coordinates_str
+			\seq_map_indexed_inline:Nn \l_values_seq {\str_put_right:Nn \l_coordinates_str {(D####1-####2)}}
+			% \msg_term:nnx {l3charts} {debug} {\l_coordinates_str}
+			\exp_last_unbraced:Ne \draw {[\l_setoptions_str]} plot [smooth~cycle] coordinates {\l_coordinates_str};
+		} {
+			% closed polygon going through all the coordinates
+			\exp_last_unbraced:Ne \draw {[\l_setoptions_str]} (D1-\firstval) foreach \v [count=\i from 1] in \values {-- (D\i-\v)} -- cycle;
+		}
 	}
 
 	% start a picture (expand option before begin)

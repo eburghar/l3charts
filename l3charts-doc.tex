@@ -6,7 +6,7 @@
   keeppdfinfo,
   pdftitle={l3charts},
   pdfsubtitle={The LaTeX package},
-  pdfversionid=0.7.0,
+  pdfversionid=0.7.1,
   pdfauthor={Éric BURGHARD},
   pdfcontactemail={ctan@itsufficient.me},
   pdfcontacturl={https://itsufficient.me},
@@ -42,7 +42,7 @@
 
 \title{The \texttt{l3charts} package}
 \author{Éric BURGHARD}
-\date{2022/08/01}
+\date{2023/01/04}
 \def\githuburl{https://git.itsufficient.me/latex/l3charts}
 
 \begin{document}
@@ -51,9 +51,10 @@
 \thispagestyle{empty}
 \begin{abstract}
   This package defines a few simple \TikZ{} charts that can be drawn using \LaTeX{}
-  environments. This has mainly been developed as an experimentation of \texttt{expl3}
-  for checking what \LaTeX3 really brought to facilitate package development (expansion
-  control, seq, prop, keys, int, bool, fp, dim, msg, ...).
+  environments. This has mainly been developed as an experimentation of \texttt{expl3} for
+  checking what \LaTeX3 really brought to facilitate package development (expansion control,
+  \texttt{seq}, \texttt{prop},\texttt{ keys},\texttt{ int},\texttt{ bool},\texttt{ fp},\texttt{
+  dim},\texttt{msg}, ...).
 \end{abstract}
 \tableofcontents
 \newpage
@@ -74,14 +75,14 @@ are still curious about it), pushes the \pkg{docstrip} mastery to a \emph{black 
 
 This package has been developed mainly to typeset a fancy résumé but perhaps it could be
 used in other contexts too. I didn't want to write \TikZ{} charts directly in the document
-as it would have turned a simple typesetting file in an unreadable document, and I would have
+as it would have turned a simple typesetting file into an unreadable document, and I would have
 forgotten every details after just a few months.
 
 I wouldn't have the patience to develop this with \LaTeX{} or \TeX{} either, but I was curious
-enough about \pkg{expl3} to try an implementation. You should probably take this package as a
-rough tutorial on how to develop with \pkg{expl3} because it uses nearly all the types defined
-in the reference documentation (expansion control, seq, prop, keys, int, bool, fp, dim, msg,
-...) in straightforward ways.
+enough about \pkg{expl3} to try an implementation. You should probably take this package as a rough
+tutorial on how to develop with \pkg{expl3} because it uses nearly all the types defined in the
+reference documentation (expansion control, \texttt{seq},\texttt{ prop},\texttt{ keys},\texttt{
+int},\texttt{ bool},\texttt{ fp},\texttt{ dim},\texttt{ msg}, ...) in straightforward ways.
 
 \TeX{} will always be that dusty tech you can't ignore because but there are so many (unmatched)
 packages coming from academic circles, but \pkg{expl3} gives a touch of modernity and facilitates
@@ -103,6 +104,9 @@ Maximal diagram radius
 
 \Describe{Option}{units}{:int}[5]
 Set the scale of units from 0 to the given number
+
+\Describe{Option}{rounded}{:bool}[false]
+Use circles for the scale and curves for the sets instead of polygons
 
 \Describe{Option}{*}{:keyval}
 All other options are passed to \env{tikzpicture}
@@ -197,10 +201,47 @@ corresponds to the dimension in \env{dims} at the same index.
 \end{kiviatchart}
 \end{example}
 
+\subsubsection{Rounded}
+
+\begin{example}
+% rounded replace polygons by circles
+% curves
+\begin{kiviatchart}[
+  scale=0.75,
+  rounded]
+  % Define the dimensions
+  \begin{dims}[
+      % inverted labels
+      label-cs=textinv,
+      % value scale on dim2 axis
+      label-on=2]
+    % Specify placement of each
+    % labels
+    \value[above]{Dim 1}
+    \value[right]{Dim 2}
+    \value[below]{Dim 3}
+    \value[below left]{Dim 4}
+    \value[left]{Dim 5}
+  \end{dims}
+
+  % Add least one set should
+  % be defined.
+  \begin{set}
+    \value{4} % Dim 1
+    \value{3} % Dim 2
+    \value{4} % Dim 3
+    \value{5} % Dim 4
+    \value{3} % Dim 5
+  \end{set}
+\end{kiviatchart}
+\end{example}
+
 \subsubsection{Multi-set}
 
 \begin{example}
-\begin{kiviatchart}[scale=0.75]
+\begin{kiviatchart}[
+  scale=0.75,
+  rounded]
 \begin{dims}[
       % bigger radius for labels
       radius=3.7cm,
@@ -554,7 +595,7 @@ All other options are passed to \env{tikzpicture}
       draw=black!30}]
   \value{Dim 1}{80}
   \value{Dim 2}{90}
-  \value{Dim 31}{50}
+  \value{Dim 3}{50}
 \end{bubblechart}
 \end{example}
  
@@ -879,6 +920,10 @@ Macro used to format its argument as bold and white with appended \%
 \section{Changes}
 
 \begin{History}
+
+\Version{0.7.1}{2023/01/04}
+\item add a \opt{rounded} option to \env{kiviatchart} to use circles for the scale and curves
+for the sets.
 
 \Version{0.7.0}{2022/08/01}
 \item add a \env{arcchart}
